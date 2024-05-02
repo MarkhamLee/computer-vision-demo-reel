@@ -1,6 +1,6 @@
 import uuid
 from paho.mqtt import client as mqtt
-from logging_utils import logger
+from utils.logging_utils import logger
 
 
 class CommUtilities():
@@ -17,8 +17,8 @@ class CommUtilities():
         return clientID
 
     @staticmethod
-    def mqttClient(clientID: str, username: str, pwd: str,
-                   host: str, port: int):
+    def mqtt_client(clientID: str, username: str, pwd: str,
+                    host: str, port: int):
 
         def connectionStatus(client, userdata, flags, code):
 
