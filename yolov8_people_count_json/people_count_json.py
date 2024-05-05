@@ -168,5 +168,5 @@ class PeopleCounter:
         return json.dumps(payload)
 
 
-count = PeopleCounter("yolov8m", "../object_detection_demos/videos/video.mp4")
+count = PeopleCounter("yolov8s", "../object_detection_demos/videos/video.mp4")
 count()
