@@ -1,12 +1,14 @@
 # Markham Lee 2024
-# Counting people crossing a line in a video file
-# I.e., ingress and egress from an area.
-# Analyzes a video file and generates a JSON payload
-# with the ingress and egress count, FPS for the last
-# frame and total people in the space at a given time
-# TODO: create ONNX, TF-Link and/or NCNN variants
-# create variant using Rockchip NPU. Add parameter to
-# pass capacity for an area and then calculate % full.
+# Computer Vision Demo Reel
+# https://github.com/MarkhamLee/computer-vision-demo-reel/tree/main/yolov8_people_count_json
+# Counting people crossing a line in a video file I.e., ingress and egress
+# from an area. Analyzes a video file and generates a JSON payload with
+# the ingress and egress count, FPS for the last frame and total people
+# in the space at a given time
+# TODO:
+# create variants for low powered edge devices, e.g., ONNX, TF-Lite
+# and/or NCNN. Create variant using Rockchip NPU. Add parameter for
+# passing room capacity to calculate % full.
 import sys
 import os
 import cv2

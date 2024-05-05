@@ -13,10 +13,10 @@ class LoggingUtilities():
         pass
 
     @staticmethod
-    def console_out_logger():
+    def console_out_logger(name):
 
         # set up/configure logging with stdout so it can be picked up by K8s
-        logger = logging.getLogger('telemetry_logger')
+        logger = logging.getLogger(name)
         logger.setLevel(logging.DEBUG)
 
         handler = logging.StreamHandler(stdout)
@@ -24,5 +24,6 @@ class LoggingUtilities():
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
         handler.setFormatter(formatter)
         logger.addHandler(handler)
+        logger.propagate = False
 
         return logger
