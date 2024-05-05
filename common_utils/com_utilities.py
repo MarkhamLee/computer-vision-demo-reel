@@ -1,6 +1,8 @@
 import uuid
 from paho.mqtt import client as mqtt
-from utils.logging_utils import logger
+from common_utils.logging_utils import LoggingUtilities
+
+logger = LoggingUtilities.console_out_logger()
 
 
 class CommUtilities():
