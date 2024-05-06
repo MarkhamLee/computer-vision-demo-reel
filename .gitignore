@@ -156,3 +156,8 @@ cython_debug/
 
 # The repo's to-do list 
 future_plans.md 
+
+# works in progress
+videos/*_30fps.mp4
+object_detection_demos
+image_similarity
