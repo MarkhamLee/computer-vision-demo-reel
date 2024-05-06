@@ -1,6 +1,6 @@
 # Markham Lee 2024
 # Computer Vision Demo Reel
-# https://github.com/MarkhamLee/computer-vision-demo-reel/tree/main/yolov8_people_count_json
+# https://github.com/MarkhamLee/computer-vision-demo-reel
 # Counting people crossing a line in a video file I.e., ingress and egress
 # from an area. Analyzes a video file and generates a JSON payload with
 # the ingress and egress count, FPS for the last frame and total people
