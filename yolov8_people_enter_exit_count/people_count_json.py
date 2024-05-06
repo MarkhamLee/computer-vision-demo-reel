@@ -140,9 +140,8 @@ class PeopleCounter:
 
             count += 1
 
-            # create payload - this data can now be written to a
-            # DB, sent out via MQTT or something like AWS SNS
-            # for consumption by a data ingestion system.
+            # create a JSON payload for consumption by other
+            # systems.
             payload = self.build_payload(fps, people_count)
 
             if count == orig_fps:
@@ -172,5 +171,5 @@ class PeopleCounter:
         return json.dumps(payload)
 
 
-count = PeopleCounter("yolov8s", "../videos/videos.mp4")
+count = PeopleCounter("yolov8s", "../videos/2936522-hd_1920_1080_30fps.mp4")
 count()
