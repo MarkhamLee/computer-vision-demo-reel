@@ -10,12 +10,17 @@ Computer vision demos related to object classification, detection, and segmentat
 
 ### YOLOv8 People counting and tracking
 
-Counting people as they move past a certain point or "border line" in a video. E.g., people passing the line from the left are entering an area and people passing the line from the right are leaving it. The generated data payload includes ingress count, egress count, fps and the total people in the frame at a given time.
+Counting people as they move past a certain point or "border line" in a video. E.g., people passing the line from the left are entering an area and people passing the line from the right are leaving it. The entry/exit data, total number of people in the frame, and FPS is collected into a JSON payload for sharing/transmitting with other systems. 
 
 ![People Counting GIF](images/people_counter_detections.gif)
 
+**Note #1:** the line in the center is generated automatically by calculating the midpoint of the image and then drawing the line on each frame. In an actual implementation the line could be moved to where it best fits the use case(s).
 
-**Note:** in a real life implementation the org would already have video systems in place, so we probably wouldn't render video with detections, we would instead just make the data available.
+**Note #2:** in a real life implementation the org would already systems/technology in place that display and store video, so we probably wouldn't render/show video with detections, we would instead just make the data available for later view/analysis.
+
+### YOLOv8 Mult-Class Counting
+
+Counting entrances and exits for several different things or classes, think cars going by, people, people on bycycles, dogs, etc. Similar to the above, the demo generates a JSON payload with entry/exit data for each class, and there is an alternate version that transmits data via MQTT to be recorded in InfluxDB for display via Grafana. 
 
 
 
