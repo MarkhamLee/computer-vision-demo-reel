@@ -10,7 +10,8 @@ There are two examples:
 
 The data architecture is fairly simple: Node-RED functions as a sort of conductor, it picks up the messages from Eclipse-Mosquitto and then writes the data to InfluxDB. From there Grafana is used to display the data. 
 
+![People Counting GIF](../images/data_ingestion_pipeline.png)
 
-**Note:** I just used the data collection infrastructure I built for my data platform project which runs on my Kubernetes (K3s distro) cluster. While an edge cluster “could” make sense in certain scenarios if this was being deployed around a city it would probably make more sense to use something like Hive MQ or a solution deployed on the cloud.*
+**Note:** I just used the data collection infrastructure I built for my [Data Platform Project](https://github.com/MarkhamLee/finance-productivity-iot-informational-weather-dashboard) which runs on my [Kubernetes (K3s distro) cluster project](https://github.com/MarkhamLee/kubernetes-k3s-data-and-IoT-platform). While an edge cluster “could” make sense in certain scenarios, if this was being deployed around a city it would probably make more sense to use something like Hive MQ or an MQTT solution deployed in the cloud.*
 
 
