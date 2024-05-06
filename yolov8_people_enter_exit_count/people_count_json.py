@@ -6,15 +6,18 @@
 # the ingress and egress count, FPS for the last frame and total people
 # in the space at a given time
 # TODO:
+# Speed this up, the FPS drops off by about 2/3rds after the first few seconds
+# however, the GPU utilization is around 20-25% and the CPU is at around 5%,
+# this leads me to believe the bottleneck is code related, need to track
+# that down.
 # create variants for low powered edge devices, e.g., ONNX, TF-Lite
 # and/or NCNN. Create variant using Rockchip NPU. Add parameter for
 # passing room capacity to calculate % full.
-import sys
-import os
 import cv2
+import os
 import json
+import sys
 import torch
-from pprint import pprint
 from ultralytics import YOLO
 from ultralytics.solutions import object_counter
 
@@ -22,10 +25,9 @@ from ultralytics.solutions import object_counter
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-from common_utils.logging_utils import LoggingUtilities  # noqa: E401
-# from common_utils.com_utilities import CommUtilities  # noqa:L E401
+from common_utils.logging_utils import LoggingUtilities  # noqa: E402
 
-logger = LoggingUtilities.console_out_logger()
+logger = LoggingUtilities.console_out_logger("people count")
 
 
 class PeopleCounter:
@@ -144,7 +146,7 @@ class PeopleCounter:
             payload = self.build_payload(fps, people_count)
 
             if count == orig_fps:
-                pprint(payload)
+                self.logger.info(f'Current payload: {payload}')
                 count = 0
 
             key = cv2.waitKey(1)
@@ -170,5 +172,5 @@ class PeopleCounter:
         return json.dumps(payload)
 
 
-count = PeopleCounter("yolov8s", "../videos/video.mp4")
+count = PeopleCounter("yolov8s", "../videos/videos.mp4")
 count()
