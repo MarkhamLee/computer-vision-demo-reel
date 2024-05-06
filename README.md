@@ -18,7 +18,7 @@ Counting people as they move past a certain point or "border line" in a video. E
 
 **Note #2:** in a real life implementation the org would already systems/technology in place that display and store video, so we probably wouldn't render/show video with detections, we would instead just make the data available for later view/analysis.
 
-### YOLOv8 Mult-Class Counting
+### YOLOv8 Multi-Class Counting
 
 Counting entrances and exits for several different things or classes, think cars going by, people, people on bycycles, dogs, etc. Similar to the above, the demo generates a JSON payload with entry/exit data for each class, and there is an alternate version that transmits data via MQTT to be recorded in InfluxDB for display via Grafana. 
 
