@@ -1,7 +1,3 @@
-# (C) Markham Lee 2023-2024
-# productivity-music-stocks-weather-IoT-dashboard
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-
 import logging
 from sys import stdout
 
