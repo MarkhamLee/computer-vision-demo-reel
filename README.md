@@ -1,6 +1,6 @@
 # Computer Vision Demo Reel
 
-Computer vision demos related to object classification, detection, and segmentation for commercial and industrial purposes. I have a large number of computer vision benchmarking scripts, demos, experiments, solution ideas and the like that aren't necessarily big enough for a stand-alone project but are still worth sharing; the goal of this repo is to aggregate them all into one place for later use. 
+Computer vision demos related to classification, object detection, and segmentation for commercial and industrial use cases. I have a large number of computer vision benchmarking scripts, demos, experiments, solution ideas and the like that aren't necessarily big enough for a stand-alone project but are still worth sharing; the goal of this repo is to aggregate them all into one place for later use. 
 
 **General Approach:** everything shared here should be *"good enough"* to be useful or for the next stage of conversation to be around what needs to built around the demo to deliver a minimal viable product or proof of concept. E.g., it doesn’t just count cars, it can count cars, handle exceptions, has logic to handle specific events and creates a JSON payload for external systems to consume.
 
