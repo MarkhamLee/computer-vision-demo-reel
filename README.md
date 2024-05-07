@@ -26,7 +26,7 @@ Counting entrances and exits for several different things or classes, think cars
 
 **Note #1:** the dashboard updates every 5 seconds vs the on screen data updating with every frame, so the dashboard lags the on screen data. 
 
-**Note #2:** similar to the above, there would probably not be a need to update to render the video in real time, we would just capture the data and transmit it to where it needs to go.
+**Note #2:** similar to the above, there would probably not be a need to render the video in real time, we would likely just capture the data and transmit it to where it needs to go.
 
 
 
