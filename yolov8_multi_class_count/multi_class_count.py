@@ -7,10 +7,8 @@
 # the ingress/egress count for each class of item and the FPS, this data is
 # logged to console once per second.
 # TODO:
-# Speed this up, the FPS drops off by about 2/3rds after the first few seconds
-# however, the GPU utilization is around 20-25% and the CPU is at around 5%,
-# this leads me to believe the bottleneck is code related, need to track
-# that down.
+# Note: this will run significantly faster on Linux than on Windows. Frame
+# rates drop by about 70% on Windows after about 3-5 seconds.
 # Create variants for low powered edge devices, e.g., Orange Pi 5+/Rockchip
 # 3588 device, Raspberry Pi 4B or 5.
 import cv2

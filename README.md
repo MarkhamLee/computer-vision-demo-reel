@@ -12,7 +12,9 @@ Computer vision demos related to classification, object detection, and segmentat
 
 Counting people as they move past a certain point or "border line" in a video. E.g., people passing the line from the left are entering an area and people passing the line from the right are leaving it. The entry/exit data, total number of people in the frame, and FPS is collected into a JSON payload for sharing/transmitting with other systems. 
 
-![People Counting GIF](images/people_counter_detections.gif)
+![People Counting GIF](images/people_counter_detections_v2.gif)
+
+**Note 1:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
 
 **Note #1:** the line in the center is generated automatically by calculating the midpoint of the image and then drawing the line on each frame. In an actual implementation the line could be moved to where it best fits the use case(s).
 
@@ -22,11 +24,13 @@ Counting people as they move past a certain point or "border line" in a video. E
 
 Counting entrances and exits for several different things or classes, think cars going by, people, people on bycycles, dogs, etc. Similar to the above, the demo generates a JSON payload with entry/exit data for each class, and there is an alternate version that transmits data via MQTT to be recorded in InfluxDB for display via Grafana. 
 
-![People Counting GIF](images/multi_count_dashboard.gif)
+![People Counting GIF](images/multi_count_dashboard_v2.gif)
 
-**Note #1:** the dashboard updates every 5 seconds vs the on screen data updating with every frame, so the dashboard lags the on screen data. 
+**Note 1:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
 
-**Note #2:** similar to the above, there would probably not be a need to render the video in real time, we would likely just capture the data and transmit it to where it needs to go.
+**Note #2:** the dashboard updates every 5 seconds vs the on screen data updating with every frame, so the dashboard lags the on screen data. 
+
+**Note #3:** similar to the above, there would probably not be a need to render the video in real time, we would likely just capture the data and transmit it to where it needs to go.
 
 
 

@@ -8,11 +8,13 @@ There are two examples:
 
 ### Multi-Class Counter with Data Pipeline – Additional Details
 
-![People Counting GIF](../images/multi_count_dashboard.gif)
+![People Counting GIF](../images/multi_count_dashboard_v2.gif)
 
-**Note #1:** the dashboard updates every 5 seconds vs the on screen data updating with every frame, so the dashboard lags the on screen data. 
+**Note 1:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
 
-**Note #2:** similar to the above, there would probably not be a need to update to render the video in real time, we would just capture the data and transmit it to where it needs to go. This also means that hardware that processes the videos *slower than real time* could be okay in certain instances where we don't need real time data.
+**Note #2:** the dashboard updates every 5 seconds vs the on screen data updating with every frame, so the dashboard lags the on screen data. 
+
+**Note #3:** similar to the above, there would probably not be a need to update to render the video in real time, we would just capture the data and transmit it to where it needs to go. This also means that hardware that processes the videos *slower than real time* could be okay in certain instances where we don't need real time data.
 
 
 The data architecture is fairly simple: Node-RED functions as a sort of conductor, it picks up the messages from Eclipse-Mosquitto and then writes the data to InfluxDB. From there Grafana is used to display the data. 

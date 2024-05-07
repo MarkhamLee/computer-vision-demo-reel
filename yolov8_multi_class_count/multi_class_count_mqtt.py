@@ -8,11 +8,9 @@
 # to a video file. From there the script will count ingress/egress for each
 # detected class vs a line drawn in the center of the frame, calculate FPS,
 # create a JSON payload and the send the data to the MQTT broker.
+# Note: this will run significantly faster on Linux than on Windows. Frame
+# rates drop by about 70% on Windows after about 3-5 seconds.
 # TODO:
-# Speed this up, the FPS drops off by about 2/3rds after the first few seconds
-# however, the GPU utilization is around 20-25% and the CPU is at around 5%,
-# this leads me to believe the bottleneck is code related, need to track
-# that down.
 # create variants for low powered edge devices, e.g., Orange Pi 5+/Rockchip
 # 3588 device, Raspberry Pi 4B or 5.
 import cv2
@@ -147,6 +145,11 @@ class PeopleCounter:
 
             # parse out key data from the video data object
             fps = self.parse_video_data(video_data)
+
+            # Add FPS to the frame
+            cv2.putText(frame, f"FPS: {fps}",
+                        (30, 30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
             # increment the "counting fields" in and out
             # returned frame can be saved for later viewing
