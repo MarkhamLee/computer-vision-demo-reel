@@ -22,7 +22,11 @@ Counting people as they move past a certain point or "border line" in a video. E
 
 Counting entrances and exits for several different things or classes, think cars going by, people, people on bycycles, dogs, etc. Similar to the above, the demo generates a JSON payload with entry/exit data for each class, and there is an alternate version that transmits data via MQTT to be recorded in InfluxDB for display via Grafana. 
 
+![People Counting GIF](images/multi_count_dashboard.gif)
 
+**Note #1:** the dashboard updates every 5 seconds vs the on screen data updating with every frame, so the dashboard will lag the on screen data. 
+
+**Note #2:** similar to the above, there would probably not be a need to update to render the video in real time, we would just capture the data and transmit it to where it needs to go.
 
 
 

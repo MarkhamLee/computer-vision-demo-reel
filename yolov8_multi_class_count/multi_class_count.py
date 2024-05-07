@@ -164,5 +164,5 @@ class PeopleCounter:
 
 
 # pass the model name, path to video and list of classes to be tracked
-count = PeopleCounter("yolov8m", "../videos/videos2.mp4", [0, 1, 2])
+count = PeopleCounter("yolov8m", "../videos/multi_class_video.mp4", [0, 1, 2])
 count()

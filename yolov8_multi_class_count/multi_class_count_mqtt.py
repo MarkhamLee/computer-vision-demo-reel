@@ -51,7 +51,7 @@ class PeopleCounter:
         # load MQTT env vars & mqtt client
         self.load_mqtt()
 
-        self.TOPIC = "/computer_vision/count_tests"
+        self.TOPIC = "/computer_vision/multi_count"
 
         # get model
         self.model = self.get_model(model_name)
@@ -148,11 +148,6 @@ class PeopleCounter:
             # parse out key data from the video data object
             fps = self.parse_video_data(video_data)
 
-            # Add FPS to the frame
-            cv2.putText(frame, f"FPS: {fps}",
-                        (30, 30),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
             # increment the "counting fields" in and out
             # returned frame can be saved for later viewing
             frame = self.count_object.start_counting(frame, video_data)
@@ -169,6 +164,9 @@ class PeopleCounter:
 
             # add FPS data to the base payload
             payload.update({"FPS": fps})
+
+            # send out MQTT message
+            self.send_payload(payload)
 
             # Printing out the JSON payload, once per second
             # Use the video's original FPS as a way to time
@@ -206,5 +204,5 @@ class PeopleCounter:
 
 
 # pass the model name, path to video and list of classes to be tracked
-count = PeopleCounter("yolov8m", "../videos/videos2.mp4", [0, 1, 2])
+count = PeopleCounter("yolov8m", "../videos/multi_class_video.mp4", [0, 1, 2])
 count()
