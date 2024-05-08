@@ -39,8 +39,6 @@ class PeopleCounter:
         # get model
         self.model = self.get_model(model_name)
 
-        self.total_count = 10
-
         # Get streaming object; use width and height from stream object
         # to calculate the image's midpoint to place the line used to
         # count people moving in and out of the frame.
@@ -55,15 +53,22 @@ class PeopleCounter:
 
     def get_model(self, model_name: str) -> object:
 
-        # CUDA acceleration
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        torch.backends.cudnn.benchmark = True
-        torch.backends.cudnn.deterministic = True
-        self.logger.info(f'Using device: {device}')
-
         # create model
         model = YOLO(model_name)
-        model.to(device)
+
+        # using a more complex check because using .to(device) when
+        # its CPU will cause model to not run when using formats like
+        # onnx or NCNN.
+        if torch.cuda.is_available():
+            device = 'cuda:0'
+            torch.backends.cudnn.benchmark = True
+            torch.backends.cudnn.deterministic = True
+            model.to(device)
+
+        else:
+            device = 'cpu'
+
+        self.logger.info(f'Using device: {device}')
 
         return model
 
@@ -97,12 +102,16 @@ class PeopleCounter:
     def analyze_video(self, stream_object: object, orig_fps: float,
                       classes: list):
 
+        frame_count = 0
+        fps_sum = 0
         count = 0
+        avg_fps = 0
 
         while stream_object.isOpened():
             success, frame = stream_object.read()
             if not success:
                 logger.info('No file or processing complete')
+                logger.info(f'Video Complete, average FPS: {avg_fps}')
                 break
 
             # the video data object contains extensive data on each frame of
@@ -114,6 +123,10 @@ class PeopleCounter:
 
             # parse out key data from the video data object
             fps = self.parse_video_data(video_data)
+
+            fps_sum = fps_sum + fps
+            frame_count += 1
+            avg_fps = round((fps_sum/frame_count), 2)
 
             # Add FPS to the frame
             cv2.putText(frame, f"FPS: {fps}",
@@ -135,7 +148,8 @@ class PeopleCounter:
             payload = intermediate_df.to_dict(orient='records')[0]
 
             # add FPS data to the base payload
-            payload.update({"FPS": fps})
+            payload.update({"FPS": fps,
+                            "Avg_FPS": avg_fps})
 
             # Printing out the JSON payload, once per second
             # Use the video's original FPS as a way to time
@@ -162,5 +176,6 @@ class PeopleCounter:
 
 
 # pass the model name, path to video and list of classes to be tracked
-count = PeopleCounter("yolov8m", "../videos/multi_class_video.mp4", [0, 1, 2])
+count = PeopleCounter("./yolov8n_ncnn_model",
+                      "../videos/multi_class_video.mp4", [0, 1, 2])
 count()

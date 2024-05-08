@@ -86,15 +86,22 @@ class PeopleCounter:
 
     def get_model(self, model_name: str) -> object:
 
-        # CUDA acceleration
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        torch.backends.cudnn.benchmark = True
-        torch.backends.cudnn.deterministic = True
-        self.logger.info(f'Using device: {device}')
-
         # create model
         model = YOLO(model_name)
-        model.to(device)
+
+        # using a more complex check because using .to(device) when
+        # its CPU will cause model to not run when using formats like
+        # onnx or NCNN.
+        if torch.cuda.is_available():
+            device = 'cuda:0'
+            torch.backends.cudnn.benchmark = True
+            torch.backends.cudnn.deterministic = True
+            model.to(device)
+
+        else:
+            device = 'cpu'
+
+        self.logger.info(f'Using device: {device}')
 
         return model
 
