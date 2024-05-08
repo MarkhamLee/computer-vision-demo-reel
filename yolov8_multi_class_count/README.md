@@ -8,9 +8,9 @@ There are two examples:
 
 ### Multi-Class Counter with Data Pipeline – Additional Details
 
-![People Counting GIF](../images/multi_count_dashboard_v2.gif)
+![Multi-Class Counting with Dashboard GIF](../images/multi_count_dashboard_v2.gif)
 
-**Note 31:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
+**Note #1:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
 
 **Note #2:** the dashboard updates every 5 seconds vs the on screen data updating with every frame, so the dashboard lags the data on the gif/video.
 

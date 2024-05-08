@@ -24,9 +24,9 @@ Counting people as they move past a certain point or "border line" in a video. E
 
 Counting entrances and exits for several different things or classes, think cars going by, people, people on bycycles, dogs, etc. Similar to the above, the demo generates a JSON payload with entry/exit data for each class, and there is an alternate version that transmits data via MQTT to be recorded in InfluxDB for display via Grafana. 
 
-![People Counting GIF](images/multi_count_dashboard_v2.gif)
+![Multi Class Counting GIF](images/multi_count_dashboard_v2.gif)
 
-**Note 1:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
+**Note #1:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
 
 **Note #2:** the dashboard updates every 5 seconds vs the on screen data updating with every frame, so the dashboard lags the data on the gif/video.
 
