@@ -141,6 +141,7 @@ class PeopleCounter:
         fps_sum = 0
         count = 0
         avg_fps = 0
+        total_latency = 0
 
         while stream_object.isOpened():
             success, frame = stream_object.read()
@@ -162,6 +163,9 @@ class PeopleCounter:
             fps_sum = fps_sum + fps
             frame_count += 1
             avg_fps = round((fps_sum/frame_count), 2)
+
+            total_latency = total_latency + inferencing_latency
+            avg_latency = round((total_latency/frame_count), 2)
 
             # Add FPS to the frame
             cv2.putText(frame, f"AVG FPS: {avg_fps}",
@@ -185,7 +189,7 @@ class PeopleCounter:
             # add FPS & latency data to the base payload
             payload.update({"FPS": fps,
                             "Avg_FPS": avg_fps,
-                            "Inferencing_Latency": inferencing_latency})
+                            "avg_latency": avg_latency})
 
             # send out MQTT message
             self.send_payload(payload)
