@@ -14,7 +14,7 @@ Counting people as they move past a certain point or "border line" in a video. E
 
 ![People Counting GIF](images/people_counter_detections_v2.gif)
 
-**Note 1:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
+**Note #1:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
 
 **Note #1:** the line in the center is generated automatically by calculating the midpoint of the image and then drawing the line on each frame. In an actual implementation the line could be moved to where it best fits the use case(s).
 
@@ -28,7 +28,7 @@ Counting entrances and exits for several different things or classes, think cars
 
 **Note 1:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
 
-**Note #2:** the dashboard updates every 5 seconds vs the on screen data updating with every frame, so the dashboard lags the on screen data. 
+**Note #2:** the dashboard updates every 5 seconds vs the on screen data updating with every frame, so the dashboard lags the data on the gif/video.
 
 **Note #3:** similar to the above, there would probably not be a need to render the video in real time, we would likely just capture the data and transmit it to where it needs to go.
 
