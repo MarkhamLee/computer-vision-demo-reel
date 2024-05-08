@@ -128,19 +128,25 @@ class PeopleCounter:
                          reg_pts=line_points,
                          classes_names=self.model.names,
                          draw_tracks=False,
-                         line_thickness=2)
+                         line_thickness=2,
+                         view_out_counts=False,
+                         view_in_counts=False)
 
         return counter
 
     def analyze_video(self, stream_object: object, orig_fps: float,
                       classes: list):
 
+        frame_count = 0
+        fps_sum = 0
         count = 0
+        avg_fps = 0
 
         while stream_object.isOpened():
             success, frame = stream_object.read()
             if not success:
                 logger.info('No file or processing complete')
+                logger.info(f'Video Complete, average FPS: {avg_fps}')
                 break
 
             # the video data object contains extensive data on each frame of
@@ -151,10 +157,14 @@ class PeopleCounter:
                                           classes=classes)
 
             # parse out key data from the video data object
-            fps = self.parse_video_data(video_data)
+            fps, inferencing_latency = self.parse_video_data(video_data)
+
+            fps_sum = fps_sum + fps
+            frame_count += 1
+            avg_fps = round((fps_sum/frame_count), 2)
 
             # Add FPS to the frame
-            cv2.putText(frame, f"FPS: {fps}",
+            cv2.putText(frame, f"AVG FPS: {avg_fps}",
                         (30, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
@@ -168,12 +178,14 @@ class PeopleCounter:
             # counting object
             nested_payload = self.count_object.class_wise_count
 
-            # use pandas to flatten nested dictionary
+            # use pandas to flatten nested dictionary received from above
             intermediate_df = pd.json_normalize(nested_payload, sep='_')
             payload = intermediate_df.to_dict(orient='records')[0]
 
-            # add FPS data to the base payload
-            payload.update({"FPS": fps})
+            # add FPS & latency data to the base payload
+            payload.update({"FPS": fps,
+                            "Avg_FPS": avg_fps,
+                            "Inferencing_Latency": inferencing_latency})
 
             # send out MQTT message
             self.send_payload(payload)
@@ -198,8 +210,8 @@ class PeopleCounter:
 
     def parse_video_data(self, data: object) -> dict:
 
-        inferencing_speed = round((sum(data[0].speed.values())), 2)
-        return round((1000 / inferencing_speed), 2)
+        inferencing_latency = round((sum(data[0].speed.values())), 2)
+        return round((1000 / inferencing_latency), 2), inferencing_latency
 
     def send_payload(self, payload: dict):
 
@@ -214,5 +226,5 @@ class PeopleCounter:
 
 
 # pass the model name, path to video and list of classes to be tracked
-count = PeopleCounter("yolov8m", "../videos/multi_class_video.mp4", [0, 1, 2])
+count = PeopleCounter("yolov8n", "../videos/multi_class_video.mp4", [0, 1, 2])
 count()

@@ -98,18 +98,24 @@ class PeopleCounter:
                          reg_pts=line_points,
                          classes_names=self.model.names,
                          draw_tracks=False,
-                         line_thickness=2)
+                         line_thickness=2,
+                         view_out_counts=False,
+                         view_in_counts=False)
 
         return counter
 
     def analyze_video(self, stream_object: object, orig_fps: float):
 
+        frame_count = 0
+        fps_sum = 0
         count = 0
+        avg_fps = 0
 
         while stream_object.isOpened():
             success, frame = stream_object.read()
             if not success:
                 logger.info('No file or processing complete')
+                logger.info(f'Video Complete, average FPS: {avg_fps}')
                 break
 
             # set class index to zero as that's the index for people
@@ -125,21 +131,30 @@ class PeopleCounter:
                                           classes=classes)
 
             # parse out key data from the video data object
-            fps = self.parse_video_data(video_data)
+            fps, inferencing_latency = self.parse_video_data(video_data)
+
+            fps_sum = fps_sum + fps
+            frame_count += 1
+            avg_fps = round((fps_sum/frame_count), 2)
 
             # TODO: update so that it can be used to count
             # instances of all classes, not just people
             # i.e., make this generic
             people_count = len((video_data[0]).boxes)
 
-            # Add FPS and people count to the frame
-            cv2.putText(frame, f"FPS: {fps}",
+            # Add FPS and people count(s) to the frame
+            cv2.putText(frame, f"Avg. FPS: {avg_fps}",
                         (30, 30),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
             cv2.putText(frame, f"Total people present: {people_count}",
                         (30, 60),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+            cv2.putText(frame, f"Incoming Persons: {int(self.count_object.in_counts)}",  # noqa: E501
+                        ((30), 90),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+            cv2.putText(frame, f"Outgoing Persons: {int(self.count_object.out_counts)}",  # noqa: E501
+                        (30, 120),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
             # increment the "counting fields" in and out
             # returned frame could be saved for later viewing
@@ -149,7 +164,8 @@ class PeopleCounter:
 
             # create a JSON payload for consumption by other
             # systems.
-            payload = self.build_payload(fps, people_count)
+            payload = self.build_payload(fps, people_count,
+                                         avg_fps, inferencing_latency)
 
             if count == orig_fps:
                 self.logger.info(f'Current payload: {payload}')
@@ -164,19 +180,24 @@ class PeopleCounter:
 
     def parse_video_data(self, data: object) -> dict:
 
-        inferencing_speed = round((sum(data[0].speed.values())), 2)
-        return round((1000 / inferencing_speed), 2)
+        inferencing_latency = round((sum(data[0].speed.values())), 2)
+        return round((1000 / inferencing_latency), 2), inferencing_latency
 
-    def build_payload(self, fps: float, count: int) -> dict:
+    def build_payload(self, fps: float, count: int,
+                      avg_fps: float, inferencing_latency) -> dict:
 
+        # note: we force int as the system will sometimes count a partial cross
+        # as a fraction of a count until they've completely crossed the line.
         payload = {"total_incoming": int(self.count_object.in_counts),
                    "total_outgoing": int(self.count_object.out_counts),
                    "total_persons_in_view": count,
-                   "current_fps": float(fps)}
+                   "current_fps": float(fps),
+                   "avg_fps": avg_fps,
+                   "inferencing_latency(ms)": inferencing_latency}
 
         # convert to json
         return json.dumps(payload)
 
 
-count = PeopleCounter("yolov8s", "../videos/videos.mp4")
+count = PeopleCounter("yolov8n", "../videos/videos.mp4")
 count()

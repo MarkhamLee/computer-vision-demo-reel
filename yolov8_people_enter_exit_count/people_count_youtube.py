@@ -6,6 +6,8 @@
 # the ingress and egress count, FPS for the last frame and total people
 # in the space at a given time
 # TODO:
+# Note: YouTube often throttles the downloads via Pafy, so the performance
+# will likely be terrible, currently working on a fix.
 # Modify with the library for creating a cap for YouTube files
 # Add average FPS calculation to this one and the
 # create variants for low powered edge devices, e.g., ONNX, TF-Lite

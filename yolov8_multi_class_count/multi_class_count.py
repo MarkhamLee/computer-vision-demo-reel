@@ -122,14 +122,14 @@ class PeopleCounter:
                                           classes=classes)
 
             # parse out key data from the video data object
-            fps = self.parse_video_data(video_data)
+            fps, inferencing_latency = self.parse_video_data(video_data)
 
             fps_sum = fps_sum + fps
             frame_count += 1
             avg_fps = round((fps_sum/frame_count), 2)
 
             # Add FPS to the frame
-            cv2.putText(frame, f"FPS: {fps}",
+            cv2.putText(frame, f"Avg FPS: {avg_fps}",
                         (30, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
@@ -147,9 +147,10 @@ class PeopleCounter:
             intermediate_df = pd.json_normalize(nested_payload, sep='_')
             payload = intermediate_df.to_dict(orient='records')[0]
 
-            # add FPS data to the base payload
+            # add FPS and latency data to the base payload
             payload.update({"FPS": fps,
-                            "Avg_FPS": avg_fps})
+                            "Avg_FPS": avg_fps,
+                            "inferencing_latency": inferencing_latency})
 
             # Printing out the JSON payload, once per second
             # Use the video's original FPS as a way to time
@@ -171,8 +172,8 @@ class PeopleCounter:
 
     def parse_video_data(self, data: object) -> dict:
 
-        inferencing_speed = round((sum(data[0].speed.values())), 2)
-        return round((1000 / inferencing_speed), 2)
+        inferencing_latency = round((sum(data[0].speed.values())), 2)
+        return round((1000 / inferencing_latency), 2), inferencing_latency
 
 
 # pass the model name, path to video and list of classes to be tracked
