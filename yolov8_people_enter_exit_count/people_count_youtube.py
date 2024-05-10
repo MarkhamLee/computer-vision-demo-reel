@@ -29,15 +29,14 @@ sys.path.append(parent_dir)
 
 from common_utils.logging_utils import LoggingUtilities  # noqa: E402
 
-logger = LoggingUtilities.console_out_logger('people_count_youtube')
-
 
 class PeopleCounter:
 
     def __init__(self, model_name: str, file_path: str):
 
         # logger
-        self.logger = logger
+        self.logger = LoggingUtilities.\
+            console_out_logger('people_count_youtube')
 
         # get model
         self.model = self.get_model(model_name)
@@ -120,7 +119,7 @@ class PeopleCounter:
         while stream_object.isOpened():
             success, frame = stream_object.read()
             if not success:
-                logger.info('No file or processing complete')
+                self.logger.info('No file or processing complete')
                 break
 
             # set class index to zero as that's the index for people
@@ -191,4 +190,3 @@ class PeopleCounter:
 
 
 count = PeopleCounter("yolov8s", "https://www.youtube.com/watch?v=lnGCrqFq-bc")
-count()

@@ -30,15 +30,14 @@ sys.path.append(parent_dir)
 from common_utils.logging_utils import LoggingUtilities  # noqa: E402
 from common_utils.com_utilities import CommUtilities  # noqa: E402
 
-logger = LoggingUtilities.console_out_logger("multi-class count w/ MQTT")
-
 
 class PeopleCounter:
 
     def __init__(self, model_name: str, file_path: str, classes: list):
 
         # logger
-        self.logger = logger
+        self.logger = LoggingUtilities.\
+            console_out_logger("multi-class count w/ MQTT")
 
         # Instantiate comms utilities
         self.comms = CommUtilities()
@@ -146,8 +145,8 @@ class PeopleCounter:
         while stream_object.isOpened():
             success, frame = stream_object.read()
             if not success:
-                logger.info('No file or processing complete')
-                logger.info(f'Video Complete, average FPS: {avg_fps}')
+                self.logger.info('No file or processing complete')
+                self.logger.info(f'Video Complete, average FPS: {avg_fps}')
                 break
 
             # the video data object contains extensive data on each frame of
@@ -162,10 +161,10 @@ class PeopleCounter:
 
             fps_sum = fps_sum + fps
             frame_count += 1
-            avg_fps = round((fps_sum/frame_count), 2)
+            avg_fps = round((fps_sum / frame_count), 2)
 
             total_latency = total_latency + inferencing_latency
-            avg_latency = round((total_latency/frame_count), 2)
+            avg_latency = round((total_latency / frame_count), 2)
 
             # Add FPS to the frame
             cv2.putText(frame, f"AVG FPS: {avg_fps}",
@@ -231,4 +230,3 @@ class PeopleCounter:
 
 # pass the model name, path to video and list of classes to be tracked
 count = PeopleCounter("yolov8n", "../videos/multi_class_video.mp4", [0, 1, 2])
-count()

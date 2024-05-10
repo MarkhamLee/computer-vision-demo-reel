@@ -6,12 +6,8 @@
 # the ingress and egress count, FPS for the last frame and total people
 # in the space at a given time
 # TODO:
-# Speed this up, the FPS drops off by about 2/3rds after the first few seconds
-# however, the GPU utilization is around 20-25% and the CPU is at around 5%,
-# this leads me to believe the bottleneck is code related, need to track
-# that down.
-# create variants for low powered edge devices, e.g., ONNX, TF-Lite
-# and/or NCNN. Create variant using Rockchip NPU. Add parameter for
+# Create variants for low powered edge devices
+# Create variant using Rockchip NPU. Add parameter for
 # passing room capacity to calculate % full.
 import cv2
 import os
@@ -27,15 +23,13 @@ sys.path.append(parent_dir)
 
 from common_utils.logging_utils import LoggingUtilities  # noqa: E402
 
-logger = LoggingUtilities.console_out_logger("people count")
-
 
 class PeopleCounter:
 
     def __init__(self, model_name: str, file_path: str):
 
         # logger
-        self.logger = logger
+        self.logger = LoggingUtilities.console_out_logger("people count")
 
         # get model
         self.model = self.get_model(model_name)
@@ -114,8 +108,8 @@ class PeopleCounter:
         while stream_object.isOpened():
             success, frame = stream_object.read()
             if not success:
-                logger.info('No file or processing complete')
-                logger.info(f'Video Complete, average FPS: {avg_fps}')
+                self.logger.info('No file or processing complete')
+                self.logger.info(f'Video Complete, average FPS: {avg_fps}')
                 break
 
             # set class index to zero as that's the index for people
@@ -135,7 +129,7 @@ class PeopleCounter:
 
             fps_sum = fps_sum + fps
             frame_count += 1
-            avg_fps = round((fps_sum/frame_count), 2)
+            avg_fps = round((fps_sum / frame_count), 2)
 
             # TODO: update so that it can be used to count
             # instances of all classes, not just people
@@ -200,4 +194,3 @@ class PeopleCounter:
 
 
 count = PeopleCounter("yolov8n", "../videos/videos.mp4")
-count()
