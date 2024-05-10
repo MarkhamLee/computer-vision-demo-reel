@@ -5,6 +5,8 @@
 # from an area. Analyzes a video file and generates a JSON payload with
 # the ingress and egress count, FPS for the last frame and total people
 # in the space at a given time
+# Note: if framerates on Windows drop significantly after a few seconds,
+# updating your Ultralytics library shouild resolve it.
 # TODO:
 # Create variants for low powered edge devices
 # Create variant using Rockchip NPU. Add parameter for

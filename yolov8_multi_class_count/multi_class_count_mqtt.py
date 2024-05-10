@@ -8,8 +8,8 @@
 # to a video file. From there the script will count ingress/egress for each
 # detected class vs a line drawn in the center of the frame, calculate FPS,
 # create a JSON payload and the send the data to the MQTT broker.
-# Note: this will run significantly faster on Linux than on Windows. Frame
-# rates drop by about 70% on Windows after about 3-5 seconds.
+# Note: if framerates on Windows drop significantly after a few seconds,
+# updating your Ultralytics library shouild resolve it.
 # TODO:
 # create variants for low powered edge devices, e.g., Orange Pi 5+/Rockchip
 # 3588 device, Raspberry Pi 4B or 5.

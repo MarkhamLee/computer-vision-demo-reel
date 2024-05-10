@@ -7,8 +7,8 @@
 # the ingress/egress count for each class of item and the FPS, this data is
 # logged to console once per second.
 # TODO:
-# Note: this will run significantly faster on Linux than on Windows. Frame
-# rates drop by about 70% on Windows after about 3-5 seconds.
+# Note: if framerates on Windows drop significantly after a few seconds,
+# updating your Ultralytics library shouild resolve it.
 # Create variants for low powered edge devices, e.g., Orange Pi 5+/Rockchip
 # 3588 device, Raspberry Pi 4B or 5.
 import cv2
