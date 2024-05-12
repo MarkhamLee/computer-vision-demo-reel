@@ -1,5 +1,8 @@
-*.onnx
 bus.jpg
 *_model/
 *.torchscript
 runs/
+*.npy
+*.onnx
+*.tflite
+datasets/*
