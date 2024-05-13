@@ -7,7 +7,7 @@ Work in progress/experimenting with optimization/acceleration formats for low po
 * Convert to NCNN format via this command
 
 ~~~
-yolo export model=yolo8n.pt format=ncnn int8=true
+yolo export model=yolov8n.pt format=ncnn int8=True
 ~~~
 
 * Make note of pointing to the entire NCNN directory and not just a file 
