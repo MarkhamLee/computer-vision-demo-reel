@@ -10,15 +10,13 @@ Computer vision demos related to classification, object detection, and segmentat
 
 ### YOLOv8 People counting and tracking
 
-Counting people as they move past a certain point or "border line" in a video. E.g., people passing the line from the left are entering an area and people passing the line from the right are leaving it. The entry/exit data, total number of people in the frame, and FPS is collected into a JSON payload for sharing/transmitting with other systems. 
+Counting people as they move past a certain point or "border line" in a video. E.g., people going up or down in an escalator. The entry/exit data, total number of people in the frame, and FPS is collected into a JSON payload for sharing/transmitting with other systems. 
 
-![People Counting GIF](images/people_counter_detections_v2.gif)
+![People Counting GIF](images/escalator_count.gif)
 
 **Note #1:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
 
-**Note #1:** the line in the center is generated automatically by calculating the midpoint of the image and then drawing the line on each frame. In an actual implementation the line could be moved to where it best fits the use case(s).
-
-**Note #2:** in a real life implementation the org would already systems/technology in place that display and store video, so we probably wouldn't render/show video with detections, we would instead just make the data available for later view/analysis.
+**Note #2:** in a real life implementation the org would have systems/technology in place that display and store video, so we probably wouldn't render/show video with detections, we would instead just make the data available for later view/analysis whether that's storing the data + the video with detections or just storing the data.
 
 ### YOLOv8 Multi-Class Counting
 

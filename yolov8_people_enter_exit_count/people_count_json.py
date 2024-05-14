@@ -81,16 +81,17 @@ class PeopleCounter:
                                                cv2.CAP_PROP_FPS))
 
         self.logger.info(f'Original video FPS: {fps}')
+        self.logger.info(f'Original Video Dimensions: {w} x {h}')
 
         return cap, w, h, fps
 
     def get_counting_object(self, width: int, height: int):
 
-        line_points = [(width / 2, 0), (width / 2, height)]
+        line_points = [(300, height * 0.5), (900, height * 0.5)]
 
         counter = object_counter.ObjectCounter()
         # set "view_img" to false if you don't want to view the video
-        counter.set_args(view_img=True,
+        counter.set_args(view_img=False,
                          reg_pts=line_points,
                          classes_names=self.model.names,
                          draw_tracks=False,
@@ -108,12 +109,12 @@ class PeopleCounter:
         avg_fps = 0
 
         while stream_object.isOpened():
-            success, frame = stream_object.read()
+            success, self.frame = stream_object.read()
             if not success:
                 self.logger.info('No file or processing complete')
                 self.logger.info(f'Video Complete, average FPS: {avg_fps}')
                 break
-
+            
             # set class index to zero as that's the index for people
             # and we're only counting people.
             # TODO: provide class as a parameter
@@ -122,7 +123,7 @@ class PeopleCounter:
             # the video data object contains extensive data on each frame of
             # the video video shape, xy coordintes for each object, object
             # classes and data on inferencing and processing speed.
-            video_data = self.model.track(frame, persist=True,
+            video_data = self.model.track(self.frame, persist=True,
                                           show=False, verbose=False,
                                           classes=classes)
 
@@ -138,25 +139,34 @@ class PeopleCounter:
             # i.e., make this generic
             people_count = len((video_data[0]).boxes)
 
-            # Add FPS and people count(s) to the frame
-            cv2.putText(frame, f"Avg. FPS: {avg_fps}",
-                        (30, 30),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-            cv2.putText(frame, f"Total people present: {people_count}",
-                        (30, 60),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-            cv2.putText(frame, f"Incoming Persons: {int(self.count_object.in_counts)}",  # noqa: E501
-                        ((30), 90),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-            cv2.putText(frame, f"Outgoing Persons: {int(self.count_object.out_counts)}",  # noqa: E501
-                        (30, 120),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-
             # increment the "counting fields" in and out
-            # returned frame could be saved for later viewing
-            frame = self.count_object.start_counting(frame, video_data)
+            self.count_object.start_counting(self.frame, video_data)
 
+            # increment frame count used for writing data to console
+            # every second 
             count += 1
+
+            # put Black rectangle on frame to for showing text
+            self.text_rectangle(self.frame)
+
+            # write data to the frame
+            fps_message = (f'Avg. FPS: {avg_fps}')
+            self.write_text(self.frame, fps_message, (5, 30))
+
+            present_message = (f'Total People Present: {people_count}')
+            self.write_text(self.frame, present_message, (5, 60))
+
+            incoming_message = (f'Going up: {int(self.count_object.in_counts)}')
+            self.write_text(self.frame, incoming_message, (5, 90))
+
+            # note: "in" = approaching from top of the line, so if top
+            # of line = entering, you need to adjust the labels accordingly
+            outgoing_message = (f'Going down: {int(self.count_object.out_counts)}')
+            self.write_text(self.frame, outgoing_message, (5, 120))
+
+            # display frame
+            cv2.imshow("YOLOv8 Tracking", self.frame)
+
 
             # create a JSON payload for consumption by other
             # systems.
@@ -173,6 +183,18 @@ class PeopleCounter:
 
         stream_object.release()
         cv2.destroyAllWindows()
+
+    def text_rectangle(self, frame: object):
+        
+        x,y,w,h = 0,0,325,135
+        cv2.rectangle(frame, (0, 0), (x + w, y + h), (20,20,20), -1)
+
+    # method for writing text to the frame 
+    def write_text(self, frame: object, message: str, coordinates: tuple):
+
+        cv2.putText(frame, message, coordinates,
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8,
+                    (255, 255, 255), 2)
 
     def parse_video_data(self, data: object) -> dict:
 
@@ -195,4 +217,4 @@ class PeopleCounter:
         return json.dumps(payload)
 
 
-count = PeopleCounter("yolov8n", "../videos/videos.mp4")
+count = PeopleCounter("yolov8l", "../videos/escalator_4.mp4")
