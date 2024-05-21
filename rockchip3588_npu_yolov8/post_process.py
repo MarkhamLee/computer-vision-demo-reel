@@ -2,9 +2,13 @@
 # TODO: re-write using cython and some other optimizations to speed up code, will also consider
 # skipping some of the steps for calculting box coordinates as that's not needed 
 # for collecting data at the edge.
-import numpy as np
+import os
+import sys
 import torch
+import numpy as np
+from statistics import mean
 import rknn_yolov8_config as config
+from time import time
 
 OBJ_THRESH = config.OBJ_THRESH
 NMS_THRESH = config.NMS_THRESH
@@ -12,19 +16,26 @@ IMG_SIZE = config.IMG_SIZE
 CLASSES = config.CLASSES
 coco_id_list = config.coco_id_list
 
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+from common_utils.logging_utils import LoggingUtilities  # noqa: E402
+
 
 class PostProcess:
 
     def __init__(self):
 
-        pass
-        
+        self.logger = LoggingUtilities.console_out_logger("Post Process")
+        self.latency_list = []
+        self.count = 0
+
 
     def filter_boxes(self, boxes, box_confidences, box_class_probs):
         """Filter boxes with object threshold.
         """
         box_confidences = box_confidences.reshape(-1)
-        candidate, class_num = box_class_probs.shape
+        # candidate, class_num = box_class_probs.shape
 
         class_max_score = np.max(box_class_probs, axis=-1)
         classes = np.argmax(box_class_probs, axis=-1)
@@ -71,6 +82,7 @@ class PostProcess:
         return keep
 
     def dfl(self, position):
+
         # Distribution Focal Loss (DFL)
         x = torch.tensor(position)
         n, c, h, w = x.shape
@@ -80,6 +92,7 @@ class PostProcess:
         y = y.softmax(2)
         acc_metrix = torch.tensor(range(mc)).float().reshape(1, 1, mc, 1, 1)
         y = (y*acc_metrix).sum(2)
+
         return y.numpy()
 
     def box_process(self, position):
@@ -102,13 +115,13 @@ class PostProcess:
         boxes, scores, classes_conf = [], [], []
         default_branch = 3
         pair_per_branch = len(input_data)//default_branch
+        
         # Calculating score sum - was removed from model to
         # accomodate NPU limitations
-        for i in range(default_branch):
-            boxes.append(self.box_process(input_data[pair_per_branch*i]))
-            classes_conf.append(input_data[pair_per_branch*i+1])
-            scores.append(np.ones_like(input_data[pair_per_branch*i+1]
-                                       [:, :1, :, :], dtype=np.float32))
+        boxes = [self.box_process(input_data[pair_per_branch*i]) for i in range(default_branch)]
+        classes_conf = [input_data[pair_per_branch*i+1] for i in range(default_branch)]
+        scores = [np.ones_like(input_data[pair_per_branch*i+1]
+                                       [:, :1, :, :], dtype=np.float32)for i in range(default_branch)]
 
         def sp_flatten(_in):
             ch = _in.shape[1]

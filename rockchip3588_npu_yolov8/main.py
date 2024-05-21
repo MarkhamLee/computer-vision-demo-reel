@@ -12,7 +12,6 @@
 # this probably just needs to be implemented in C++.
 # Next Steps: add JSON output of data from video, add unique tracking and counting
 import cv2
-import gc
 import os
 import sys
 import numpy as np
@@ -133,9 +132,8 @@ class RKYoloV8:
                 counter = 0
                 avg_latency = round((mean(latency_list)), 2)
                 avg_post_process_latency = round((mean(process_list)), 2)
-                avg_total_latency = avg_latency + avg_post_process_latency
                 inferencing_fps = round((1000/avg_latency), 2)
-                self.logger.info(f'Average latency: {avg_latency}, Avg. FPS: {inferencing_fps}, post process latency: {avg_post_process_latency}')  # noqa: E501
+                self.logger.info(f'Average inferencing latency: {avg_latency}, Avg. FPS: {inferencing_fps}, avg post process latency: {avg_post_process_latency}')  # noqa: E501
 
             # draw boxes on image
             # given this would be deployed at the edge, we only need to draw boxes on
@@ -183,7 +181,7 @@ class RKYoloV8:
             cv2.putText(image, '{0} {1:.2f}'.format(CLASSES[cl], score),
                         (top, left - 6), cv2.FONT_HERSHEY_SIMPLEX,
                         0.6, (0, 0, 255), 2)
-            cv2.imshow("full post process result", image)
+            cv2.imshow("YOLOv8 Detections on Orange Pi 5+ w/ Rockchip 3588", image)
 
     def shutdown(self):
 
