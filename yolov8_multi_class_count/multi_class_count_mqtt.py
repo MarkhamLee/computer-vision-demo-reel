@@ -147,7 +147,7 @@ class PeopleCounter:
             if not success:
                 self.logger.info('No file or processing complete')
                 self.logger.info(f'Video Complete, average FPS: {avg_fps}')
-                break
+                self.shutdown()
 
             # the video data object contains extensive data on each frame of
             # the video video shape, xy coordintes for each object, object
@@ -206,7 +206,7 @@ class PeopleCounter:
 
             key = cv2.waitKey(1)
             if key == ord('q'):
-                break
+                self.shutdown()
 
         stream_object.release()
         cv2.destroyAllWindows()
@@ -226,6 +226,12 @@ class PeopleCounter:
 
         del payload
         gc.collect()
+
+    def shutdown(self):
+
+        self.stream_object.release()
+        cv2.destroyAllWindows()
+        sys.exit()
 
 
 # pass the model name, path to video and list of classes to be tracked

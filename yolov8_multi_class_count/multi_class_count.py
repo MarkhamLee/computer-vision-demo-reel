@@ -110,7 +110,7 @@ class PeopleCounter:
             if not success:
                 self.logger.info('No file or processing complete')
                 self.logger.info(f'Video Complete, average FPS: {avg_fps}')
-                break
+                self.shutdown()
 
             # the video data object contains extensive data on each frame of
             # the video video shape, xy coordintes for each object, object
@@ -163,17 +163,21 @@ class PeopleCounter:
 
             key = cv2.waitKey(1)
             if key == ord('q'):
-                break
-
-        stream_object.release()
-        cv2.destroyAllWindows()
+                self.shutdown()
 
     def parse_video_data(self, data: object) -> dict:
 
         inferencing_latency = round((sum(data[0].speed.values())), 2)
         return round((1000 / inferencing_latency), 2), inferencing_latency
 
+    def shutdown(self):
+
+        self.stream_object.release()
+        cv2.destroyAllWindows()
+        self.logger.info("Stream object released, exiting...")
+        sys.exit()
+
 
 # pass the model name, path to video and list of classes to be tracked
-count = PeopleCounter("yolov8s",
+count = PeopleCounter("yolov8n.pt",
                       "../videos/multi_class_video.mp4", [0, 1, 2])

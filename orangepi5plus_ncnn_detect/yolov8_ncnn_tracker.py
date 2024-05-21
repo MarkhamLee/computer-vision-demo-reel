@@ -3,6 +3,7 @@ import gc
 import json
 import os
 import sys
+import torch
 from ultralytics import YOLO
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -11,6 +12,8 @@ sys.path.append(parent_dir)
 from common_utils.logging_utils import LoggingUtilities  # noqa: E402
 
 logger = LoggingUtilities.console_out_logger("NCNN Tracker")
+
+torch.set_num_threads = 1
 
 
 class ObjectTracker:
@@ -61,6 +64,7 @@ class ObjectTracker:
             if not success:
                 logger.info('No file or processing complete')
                 logger.info(f'Video Complete, average FPS: {avg_fps}')
+                self.shutdown()
                 break
 
             # the video data object contains extensive data on each frame of
@@ -104,10 +108,8 @@ class ObjectTracker:
 
             # Break the loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord("q"):
+                self.shutdown()
                 break
-
-        stream_object.release()
-        cv2.destroyAllWindows()
 
     def write_on_frame(self, frame: object, text: str,
                        coordinates: tuple):
@@ -130,7 +132,12 @@ class ObjectTracker:
         # convert to json
         return json.dumps(payload)
 
+    def shutdown(self):
+
+        self.stream_object.release()
+        cv2.destroyAllWindows()
+
 
 # pass the model name, path to video and list of classes to be tracked
-tracking = ObjectTracker("./yolov8n_ncnn_model/",
+tracking = ObjectTracker("yolov8n.pt",
                          "../videos/rural_highway.mp4")

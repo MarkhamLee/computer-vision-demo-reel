@@ -114,7 +114,7 @@ class PeopleCounter:
                 self.logger.info('No file or processing complete')
                 self.logger.info(f'Video Complete, average FPS: {avg_fps}')
                 break
-            
+
             # set class index to zero as that's the index for people
             # and we're only counting people.
             # TODO: provide class as a parameter
@@ -143,7 +143,7 @@ class PeopleCounter:
             self.count_object.start_counting(self.frame, video_data)
 
             # increment frame count used for writing data to console
-            # every second 
+            # every second
             count += 1
 
             # put Black rectangle on frame to for showing text
@@ -156,17 +156,16 @@ class PeopleCounter:
             present_message = (f'Total People Present: {people_count}')
             self.write_text(self.frame, present_message, (5, 60))
 
-            incoming_message = (f'Going up: {int(self.count_object.in_counts)}')
+            incoming_message = (f'Going up: {int(self.count_object.in_counts)}')  # noqa: E501
             self.write_text(self.frame, incoming_message, (5, 90))
 
             # note: "in" = approaching from top of the line, so if top
             # of line = entering, you need to adjust the labels accordingly
-            outgoing_message = (f'Going down: {int(self.count_object.out_counts)}')
+            outgoing_message = (f'Going down: {int(self.count_object.out_counts)}')  # noqa: E501
             self.write_text(self.frame, outgoing_message, (5, 120))
 
             # display frame
             cv2.imshow("YOLOv8 Tracking", self.frame)
-
 
             # create a JSON payload for consumption by other
             # systems.
@@ -185,11 +184,11 @@ class PeopleCounter:
         cv2.destroyAllWindows()
 
     def text_rectangle(self, frame: object):
-        
-        x,y,w,h = 0,0,325,135
-        cv2.rectangle(frame, (0, 0), (x + w, y + h), (20,20,20), -1)
 
-    # method for writing text to the frame 
+        x, y, w, h = 0, 0, 325, 135
+        cv2.rectangle(frame, (0, 0), (x + w, y + h), (20, 20, 20), -1)
+
+    # method for writing text to the frame
     def write_text(self, frame: object, message: str, coordinates: tuple):
 
         cv2.putText(frame, message, coordinates,
