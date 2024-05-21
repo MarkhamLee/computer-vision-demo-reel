@@ -32,28 +32,18 @@ To run this yourself you need to run the main tool on an x86 machine to run the 
 
 * **Elephant in the room:** closed source .so file coupled with open-source tools that are often buggy and are not updated very often. Plus it can be hard to convert your own trained models for YOLOv5 and v8. Not exactly ideal. I am not an open-source zealot per se, but when you are talking about a device aimed at that intersection between people trying to learn, seasoned engineers prototyping things, homelabbers and experienced makers, open source seems the way to go IMO.
 
-* The tools are "okay" once you work out a few bugs, fix a few items, identify issues where a script is presented as for testing on x86 but is really for running on your RK3588 device, etc., absolutely one of those "hard until it isn't" scenarios. So,.. you know, choose wisely, especially when Google Coral exists. 
+* The tools are "okay" once you work out a few bugs, fix a few items, identify issues where a script is presented as for testing on x86 but is really for running on your RK3588 device, etc., absolutely one of those "hard until it isn't" scenarios. So,.. you know, choose wisely, especially considering that Google Coral devices make it easy for you to convert and deploy TensorFlow Lite models with relatively little hassle.
 
 * It's not really a Six TOPS NPU, it's more like [3 x 1 TOPs NPUs IF you're lucky](https://clehaxze.tw/gemlog/2023/07-13-rockchip-npus-and-deploying-scikit-learn-models-on-them.gmi)  
 
 * It's difficult to get the three NPU cores to work together. 
 
-#### But there is good...
+#### For the device overall, there is a plenty of good... 
 
-* Good (and possibly great with C++ and some tweaking) performance given how small and low powered this device is, I'd probably find another option for deploying YOLO at the edge. Google's Coral devices are basically sitting right there, you can just convert a TF lite model and be on your way. 
+* Good (and possibly great with C++ and some tweaking) performance given how small and low powered this device is. 
 
-* An [open-source driver has been created](https://www.hackster.io/news/tomeu-vizoso-s-open-source-npu-driver-project-does-away-with-the-rockchip-rk3588-s-binary-blob-0153cf723d44) that should be incorporated into Mesa 3d soon, once that happens, we will be able to use TensorFlow Lite delegates to push models to the NPU. I.e., if I were to build an ML project on this device for home or work, I would use the open-source driver. 
+* An [open-source driver has been created](https://www.hackster.io/news/tomeu-vizoso-s-open-source-npu-driver-project-does-away-with-the-rockchip-rk3588-s-binary-blob-0153cf723d44) that should be incorporated into Mesa 3d soon, once that happens, we will be able to use TensorFlow Lite delegates to push models to the NPU. I.e., if I were to build an ML project on this device for home or work, I would use the open-source driver. Onec I finish the item below, I plan to tackle using the open source driver next.
 
 * Yes, the models typically only use one NPU core, but that also means that for certain models you can run three of them in parallel provided the post process steps are light. I'm working on another example that runs a model on each core, meaning: you could monitor and run ML on three different video streams with one of these devices. 
-
-* While it was frustrating at times, working with the RKNN tools was a good learning experience, and it gave me an NPU wish list:
-    
-    * Open-source drivers 
-
-    * Direct support for existing formats 
-
-    * NPU/TPUs that can handle ALL the neural net layers and/or calculations of the models I use the most, prior to using the RKNN tools I never considered this as a potential issue. 
-
-    * TOPS numbers expressed in more accurate terms, i.e., the RK3588 is NOT a Six TOPS NPU, it's 3 x 1 TOPs at best.
 
 Overall, I think the RKNN tools are best used for models that a) can run entirely on the NPU b) don't require any sort of modification before conversion to RKNN format. 
