@@ -26,7 +26,7 @@ To run this yourself you need to run the main tool on an x86 machine to run the 
     * You can potentially use [Rockchip's fork](https://github.com/airockchip/ultralytics_yolov8) of Ultralytics YOLOv8 repo to convert your YOLO models to ONNX, but your mileage may vary, e.g., code samples or parameters that don’t work, models that fail to produce inferences or the boxes are nearly off the screen, etc. 
 
 
-### So, my thoughts on this device in general?
+### Thoughts on RKNN Tools and Drivers: 
 
 #### Get the negatives out of the way first..
 
@@ -56,12 +56,4 @@ To run this yourself you need to run the main tool on an x86 machine to run the 
 
     * TOPS numbers expressed in more accurate terms, i.e., the RK3588 is NOT a Six TOPS NPU, it's 3 x 1 TOPs at best.
 
-#### At the end of the day, for AI/ML this device:
-
-* Can be impressive under the right circumstances 
-
-* Best suited for models that don't need any tweaking to be converted to RKNN format
-
-* A couple of more reverse engineering and open source projects away from seeing its full potential
-
-
+Overall, I think the RKNN tools are best used for models that a) can run entirely on the NPU b) don't require any sort of modification before conversion to RKNN format. 
