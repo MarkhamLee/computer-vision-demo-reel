@@ -10,7 +10,7 @@ Computer vision demos related to classification, object detection, and segmentat
 
 ### YOLOv8 People counting and tracking
 
-Counting people as they move past a certain point or "border line" in a video. E.g., people going up or down in an escalator. The entry/exit data, total number of people in the frame, and FPS is collected into a JSON payload for sharing/transmitting with other systems. 
+Counting people as they move past a certain point or "border line" in a video. E.g., people going up or down in an escalator. The entry/exit data, total number of people in the frame, and FPS is collected into a JSON payload for sharing with/transmitting to other systems. 
 
 ![People Counting GIF](images/escalator_count.gif)
 
