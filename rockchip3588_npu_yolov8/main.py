@@ -6,7 +6,7 @@
 # the extra steps on CPU take nearly as long as the inferencing.
 # Temps barely move about 43C for running inferencing w/o post process,
 # adding post process pushes temps to 55-58C and maxes out all CPUs, 
-# as opposed to sitting around 10-15% otherwise. 
+# as opposed to sitting around 5-10% otherwise. 
 # TODO: optimize post process time, will probably use cython and/or look
 # into the longshot of possibly moving those to the device's GPU. That being said
 # this probably just needs to be implemented in C++.
@@ -53,7 +53,7 @@ class RKYoloV8:
 
         model = self.rknn.load_rknn(model_path)
         if model != 0:
-            print("model load error, exiting....")
+            self.logger.debug("Model load error, exiting....")
             sys.exit()
 
         return model
@@ -68,7 +68,7 @@ class RKYoloV8:
                                cv2.CAP_PROP_FRAME_HEIGHT,
                                cv2.CAP_PROP_FPS))
 
-        print(f'Video loaded, original FPS: {fps}, width: {w}, height: {h}')
+        self.logger.info(f'Video loaded, original FPS: {fps}, width: {w}, height: {h}')
 
         return stream_object
 
@@ -77,10 +77,10 @@ class RKYoloV8:
         status = self.rknn.init_runtime(core_mask=RKNNLite.NPU_CORE_1)
 
         if status != 0:
-            print('Run time instantiation failed, exiting...')
+            self.logger.debug('Run time instantiation failed, exiting...')
             sys.exit()
         else:
-            print('RKNN run time environment created')
+            self.logger.info('RKNN run time environment created')
 
     def inferencing(self):
 
@@ -94,7 +94,7 @@ class RKYoloV8:
             success, frame = self.streaming_object.read()
 
             if not success:
-                print('Data read failure or video over, exiting...')
+                self.logger.info('Data read failure or video over, exiting...')
                 self.shutdown()
 
             # instead of resizing the image, we letter box it so it
@@ -124,7 +124,6 @@ class RKYoloV8:
             boxes, classes, scores = self.post_process.post_process(outputs)
             end_process_time = time()
 
-
             post_process_latency = 1000 * round((end_process_time -
                                                  start_process_time), 2)
 
@@ -136,8 +135,7 @@ class RKYoloV8:
                 avg_post_process_latency = round((mean(process_list)), 2)
                 avg_total_latency = avg_latency + avg_post_process_latency
                 inferencing_fps = round((1000/avg_latency), 2)
-                overall_fps = round((1000/avg_total_latency), 2)
-                print(f'Average latency: {avg_latency}, Avg. FPS: {inferencing_fps}, post process latency: {avg_post_process_latency}, effective_fps: {overall_fps}')  # noqa: E501
+                self.logger.info(f'Average latency: {avg_latency}, Avg. FPS: {inferencing_fps}, post process latency: {avg_post_process_latency}')  # noqa: E501
 
             # draw boxes on image
             # given this would be deployed at the edge, we only need to draw boxes on

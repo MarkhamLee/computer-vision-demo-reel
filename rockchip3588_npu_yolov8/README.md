@@ -1,16 +1,17 @@
 ## YOLOv8 Object Detection on the NPU of a Rockchip 3588 System on Chip (SOC)
 
-Relatively simple starter implementation/example of using the NPU of a Rockchip 3588 to accelerate YOLOv8. Plan is to optimize the code a bit more for speed and then add some tracking and counting features, given how you have to implement YOLOv8 via Rockchip's RKNN format the built in tracking and counting features of YOLO aren't available so I'll have to either *"build a bridge"* to said features, rebuild them myself or some combination of both. 
+Relatively simple starter implementation/example of using the NPU of a Rockchip 3588 to accelerate YOLOv8. Plan is to optimize the code a bit more for speed and then add some tracking and counting features. Implementing YOLOv8 via Rockchip's RKNN format removes the model's built in tracking and counting features,so I'll have to either *"build a bridge"* to said features, rebuild them myself or some combination of both. 
 
 
 ### Performance
-* If you just look at inferencing, it's about 35-40 FPS for a 640 x 360 image, however, to run YOLO models on this NPU requires you to remove some items from the original neural network (around generating predictions, probabilities and the like) and move them to the CPU, which adds another 20ms. Meaning: the real FPS is around 20, goal is to figure out how to slice down a bit. 
-* It's worth noting that if you skip the post processing steps the FPS jumps to close to 50, so reducing the amount compute needed for post processing will speed this up tremendously. 
+* If you just look at inferencing, it's about 35-40 FPS for a 640 x 360 image, however, to run YOLO models on this NPU requires you to remove some items from the original neural network (generating predictions, probabilities and the like) and move them to the CPU, which adds another 20ms of processing time. However, since these two processes largely happen in parallel the FPS on screen is driven by the inferencing latency, so the onscreen appearence is fairly smooth save for occasional hiccups when one process is waiting for the other. 
+* It's worth noting that if you skip the post processing steps the FPS jumps to close to 50, which means that despite things happening in parallel the compute load from post processing does slow things down overall. When you run the entire process end to end CPU uitlization is close to 100%, but when just run the NPU portion CPU  load rarely goes higher than 10%. I.e., making the post processing more efficient should boost the FPS significantly.
 
+### Setup & Technical Details
 
-### Setup
+I used the desktop version of [Joshua Riek's Ubuntu 22.04 distro](https://github.com/Joshua-Riek/ubuntu-rockchip) for Rockchip 3588 devices the operating system, as it delivers better performance than anything else I've tried. 
 
-To run this yourself you need to run the main tool on an x86 machine to run the conversion tool and then run the "Toolkit lite" on your Rockchip 3588 device. Suggested approach:
+To run the models on the NPU, you'll need to run the conversion tool (RKNN Toolkit 2) on an x86 machine to run the conversion tool and then use "RKNN Toolkit Lite" to run the models on your Rockchip 3588 device. Suggested approach:
 
 1) [Clone the RKNN-Toolkit2 repo](https://github.com/airockchip/rknn-toolkit2) on the x86 machine you'll use for converting the models AND on your RK3588 device. Make sure it's the most recent repo as they have another with an identical name that is no longer supported. 
 2) Once you've cloned the repo, you'll need to go to this [folder](https://github.com/airockchip/rknn-toolkit2/tree/master/rknn-toolkit2/packages) and do two things (note: there is a C++ option too, but I haven't tried it yet)
@@ -23,7 +24,7 @@ To run this yourself you need to run the main tool on an x86 machine to run the 
 5) Process wise, the basic steps are: convert the model to ONNX and then use Rockchip's tools to convert the model to RKNN format. 
 6) Two other links to keep in mind:
     *[RKNN model Zoo](https://github.com/airockchip/rknn_model_zoo) has models you can use for conversion, but outside of the Rockchip modified ones for YOLO (the aforementioned things moved to CPU)  you can download just them from their original source.
-    * You can potentially use [Rockchip's fork](https://github.com/airockchip/ultralytics_yolov8) of Ultralytics YOLOv8 repo to convert your YOLO models to ONNX, but your mileage may vary, e.g., code samples or parameters that don’t work, models that fail to produce inferences or the boxes are nearly off the screen, etc. 
+    * You can potentially use [Rockchip's fork](https://github.com/airockchip/ultralytics_yolov8) of Ultralytics YOLOv8 repo to convert your YOLO models to ONNX, but your mileage may vary, e.g., code samples or parameters that don’t work, models that fail to produce inferences or the boxes are nearly off the screen, etc.
 
 
 ### Thoughts on RKNN Tools and Drivers: 
@@ -40,10 +41,12 @@ To run this yourself you need to run the main tool on an x86 machine to run the 
 
 #### For the device overall, there is a plenty of good... 
 
-* Good (and possibly great with C++ and some tweaking) performance given how small and low powered this device is. 
+* Good (and possibly great with C++ and some tweaking) performance, especially when you consider how how small and *"low powered"* this device is. 
 
-* An [open-source driver has been created](https://www.hackster.io/news/tomeu-vizoso-s-open-source-npu-driver-project-does-away-with-the-rockchip-rk3588-s-binary-blob-0153cf723d44) that should be incorporated into Mesa 3d soon, once that happens, we will be able to use TensorFlow Lite delegates to push models to the NPU. I.e., if I were to build an ML project on this device for home or work, I would use the open-source driver. Onec I finish the item below, I plan to tackle using the open source driver next.
+* An [open-source driver has been created](https://www.hackster.io/news/tomeu-vizoso-s-open-source-npu-driver-project-does-away-with-the-rockchip-rk3588-s-binary-blob-0153cf723d44) that should be incorporated into Mesa 3d soon, once that happens, we will be able to use TensorFlow Lite delegates to push models to the NPU. I.e., if I were to build an ML project on this device for home or work, my *strong preference* would be to use the open-source driver. Once I finish the item below, I plan to tackle using the open source driver next.
 
 * Yes, the models typically only use one NPU core, but that also means that for certain models you can run three of them in parallel provided the post process steps are light. I'm working on another example that runs a model on each core, meaning: you could monitor and run ML on three different video streams with one of these devices. 
 
 Overall, I think the RKNN tools are best used for models that a) can run entirely on the NPU b) don't require any sort of modification before conversion to RKNN format. 
+
+Finally, independent open source devs and maintainers however you can, as they're builing the tools that will enable Rockchip 3588 devices to reach their full potential.
