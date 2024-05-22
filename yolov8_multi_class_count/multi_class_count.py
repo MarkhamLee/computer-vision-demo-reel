@@ -6,9 +6,9 @@
 # in the center of the frame. The script will then generate a JSON payload with
 # the ingress/egress count for each class of item and the FPS, this data is
 # logged to console once per second.
-# TODO:
 # Note: if framerates on Windows drop significantly after a few seconds,
 # updating your Ultralytics library shouild resolve it.
+# TODO:
 # Create variants for low powered edge devices, e.g., Orange Pi 5+/Rockchip
 # 3588 device, Raspberry Pi 4B or 5.
 import cv2
