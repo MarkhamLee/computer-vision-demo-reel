@@ -162,4 +162,5 @@ videos/*_30fps.mp4
 object_detection_demos
 image_similarity
 
-orangepi5plus_ncnn_detect/
+orangepi5plus_ncnn_detect/*
+runs/*
