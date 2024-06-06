@@ -1,14 +1,10 @@
 # refactored from: https://github.com/airockchip/rknn_model_zoo/blob/main/examples/yolov8/python/yolov8.py  # noqa: E501
-# TODO: re-write using cython and some other optimizations to speed up code, will also consider
-# skipping some of the steps for calculting box coordinates as that's not needed 
-# for collecting data at the edge.
+# TODO: re-write, optimize to reduce processing time, currently around 19-20ms.
 import os
 import sys
 import torch
 import numpy as np
-from statistics import mean
 import rknn_yolov8_config as config
-from time import time
 
 OBJ_THRESH = config.OBJ_THRESH
 NMS_THRESH = config.NMS_THRESH
@@ -29,7 +25,6 @@ class PostProcess:
         self.logger = LoggingUtilities.console_out_logger("Post Process")
         self.latency_list = []
         self.count = 0
-
 
     def filter_boxes(self, boxes, box_confidences, box_class_probs):
         """Filter boxes with object threshold.
@@ -115,13 +110,17 @@ class PostProcess:
         boxes, scores, classes_conf = [], [], []
         default_branch = 3
         pair_per_branch = len(input_data)//default_branch
-        
+
         # Calculating score sum - was removed from model to
         # accomodate NPU limitations
-        boxes = [self.box_process(input_data[pair_per_branch*i]) for i in range(default_branch)]
-        classes_conf = [input_data[pair_per_branch*i+1] for i in range(default_branch)]
-        scores = [np.ones_like(input_data[pair_per_branch*i+1]
-                                       [:, :1, :, :], dtype=np.float32)for i in range(default_branch)]
+
+        for i in range(default_branch):
+
+            input = input_data[pair_per_branch*i+1]
+
+            boxes.append(self.box_process(input_data[pair_per_branch*i]))
+            classes_conf.append(input)
+            scores.append(np.ones_like(input[:, :1, :, :], dtype=np.float32))
 
         def sp_flatten(_in):
             ch = _in.shape[1]
