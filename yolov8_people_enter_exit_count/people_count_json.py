@@ -112,8 +112,7 @@ class PeopleCounter:
             success, self.frame = stream_object.read()
             if not success:
                 self.logger.info('No file or processing complete')
-                self.logger.info(f'Video Complete, average FPS: {avg_fps}')
-                break
+                self.shutdown()
 
             # set class index to zero as that's the index for people
             # and we're only counting people.
@@ -178,10 +177,7 @@ class PeopleCounter:
 
             key = cv2.waitKey(1)
             if key == ord('q'):
-                break
-
-        stream_object.release()
-        cv2.destroyAllWindows()
+                self.shutdown()
 
     def text_rectangle(self, frame: object):
 
@@ -214,6 +210,11 @@ class PeopleCounter:
 
         # convert to json
         return json.dumps(payload)
+
+    def shutdown(self):
+        self.stream_object.release()
+        cv2.destroyAllWindows()
+        sys.exit()
 
 
 count = PeopleCounter("yolov8l", "../videos/escalator_4.mp4")
