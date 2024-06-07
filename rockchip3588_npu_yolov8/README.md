@@ -4,8 +4,9 @@ Relatively simple starter implementation/example of using the NPU of a Rockchip 
 
 
 ### Performance
-* If you just look at inferencing, it's about 35-40 FPS for a 640 x 360 image, however, to run YOLO models on this NPU requires you to remove some items from the original neural network (generating predictions, probabilities and the like) and move them to the CPU, which adds another 20ms of processing time. However, since these two processes largely happen in parallel the FPS on screen is driven by the inferencing latency, so the onscreen appearence is fairly smooth save for occasional hiccups when one process is waiting for the other. 
-* It's worth noting that if you skip the post processing steps the FPS jumps to close to 50, which means that despite things happening in parallel the compute load from post processing does slow things down overall. When you run the entire process end to end CPU uitlization is close to 100%, but when just run the NPU portion CPU  load rarely goes higher than 10%. I.e., making the post processing more efficient should boost the FPS significantly.
+* If you just look at inferencing, it's about 35-40 FPS for a 640 x 360 image, however, to run YOLO models on this NPU requires you to remove some items from the original neural network (generating predictions, probabilities and the like) and move them to the CPU, which adds another 20ms of processing time, so the overall FPS is closer to 20.
+
+* It's worth noting that if you skip the post processing steps the FPS jumps to close to 50, and overalL utilization rarely goes above 10%,  which means the post-processing on the CPU is a significant bottleneck. 
 
 ### Setup & Technical Details
 
@@ -31,9 +32,9 @@ To run the models on the NPU, you'll need to run the conversion tool (RKNN Toolk
 
 #### Get the negatives out of the way first..
 
-* **Elephant in the room:** closed source .so file coupled with open-source tools that are often buggy and are not updated very often. Plus it can be hard to convert your own trained models for YOLOv5 and v8. Not exactly ideal. I am not an open-source zealot per se, but when you are talking about a device aimed at that intersection between people trying to learn, seasoned engineers prototyping things, homelabbers and experienced makers, open source seems the way to go IMO.
+* **Elephant in the room:** closed source .so file coupled with open-source tools that are often buggy and are not updated very often. Plus it can be hard to convert your own trained models for YOLOv5 and v8. Not exactly ideal. I am not an open-source zealot per se, but when you are talking about a device aimed at that intersection between people trying to learn, seasoned engineers prototyping things, homelabbers and experienced makers, open source seems the way to go IMO, not to mention ease of use is critical.
 
-* The tools are "okay" once you work out a few bugs, fix a few items, identify issues where a script is presented as for testing on x86 but is really for running on your RK3588 device, etc., absolutely one of those "hard until it isn't" scenarios. So,.. you know, choose wisely, especially considering that Google Coral devices make it easy for you to convert and deploy TensorFlow Lite models with relatively little hassle.
+* The tools are "okay" once you work out a few bugs, fix a few items, identify issues where a script is presented as for testing on x86 but is really for running on your RK3588 device, etc., absolutely one of those "hard until it isn't" scenarios. Even with Google appearing to have abandoned Coral, given that the devices are easy to use and readily available, they're a viable alternative for a few years until things in this space improve.
 
 * It's not really a Six TOPS NPU, it's more like [3 x 1 TOPs NPUs IF you're lucky](https://clehaxze.tw/gemlog/2023/07-13-rockchip-npus-and-deploying-scikit-learn-models-on-them.gmi)  
 
@@ -49,4 +50,4 @@ To run the models on the NPU, you'll need to run the conversion tool (RKNN Toolk
 
 Overall, I think the RKNN tools are best used for models that a) can run entirely on the NPU b) don't require any sort of modification before conversion to RKNN format. 
 
-Finally, independent open source devs and maintainers however you can, as they're builing the tools that will enable Rockchip 3588 devices to reach their full potential.
+Finally, support independent open source devs and maintainers however you can, as they're building the tools that will enable Rockchip 3588 devices to reach their full potential.

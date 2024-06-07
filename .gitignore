@@ -158,7 +158,6 @@ cython_debug/
 future_plans.md 
 
 # works in progress
-videos/*_30fps.mp4
 object_detection_demos
 image_similarity
 

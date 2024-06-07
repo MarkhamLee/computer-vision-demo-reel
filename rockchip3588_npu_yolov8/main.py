@@ -1,16 +1,15 @@
-# Based on/inspired by: https://github.com/MarkhamLee/rknn_model_zoo/blob/main/examples/yolov8/python/yolov8.py
-# YOLOv8 object counter running on a Rockchip3588 NPU via the
-# RKNN process. For YOLO models the RKNN conversion process pushes
+# Based on/inspired by:
+# https://github.com/MarkhamLee/rknn_model_zoo/blob/main/examples/yolov8/python/yolov8.py
+# YOLOv8 object counter running on a Rockchip3588 NPU via the RKNN format.
+# For YOLO models the RKNN conversion process pushes
 # some of the post processing steps that would normally occur on a GPU
-# to the CPU: https://github.com/airockchip/ultralytics_yolov8/blob/main/RKOPT_README.md
-# the extra steps on CPU take nearly as long as the inferencing.
+# to the CPU:
+# https://github.com/airockchip/ultralytics_yolov8/blob/main/RKOPT_README.md
+# The extra steps on CPU take nearly as long as the inferencing.
 # Temps barely move about 43C for running inferencing w/o post process,
-# adding post process pushes temps to 55-58C and maxes out all CPUs, 
-# as opposed to sitting around 5-10% otherwise. 
-# TODO: optimize post process time, will probably use cython and/or look
-# into the longshot of possibly moving those to the device's GPU. That being said
-# this probably just needs to be implemented in C++.
-# Next Steps: add JSON output of data from video, add unique tracking and counting
+# adding post process pushes temps to 55-58C and maxes out all CPUs
+# TODO: optimize post process time, potentially re-write in C++
+# add unique tracking and counting.
 import cv2
 import os
 import sys
@@ -18,7 +17,6 @@ import numpy as np
 import rknn_yolov8_config as config
 from post_process import PostProcess
 from rknnlite.api import RKNNLite
-from statistics import mean
 from time import time
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -62,13 +60,6 @@ class RKYoloV8:
         stream_object = cv2.VideoCapture(path)
         assert stream_object.isOpened(), "Error reading video file"
 
-        w, h, fps = (int(stream_object.get(x))
-                     for x in (cv2.CAP_PROP_FRAME_WIDTH,
-                               cv2.CAP_PROP_FRAME_HEIGHT,
-                               cv2.CAP_PROP_FPS))
-
-        self.logger.info(f'Video loaded, original FPS: {fps}, width: {w}, height: {h}')
-
         return stream_object
 
     def run_time_environment(self):
@@ -83,9 +74,9 @@ class RKYoloV8:
 
     def inferencing(self):
 
-        counter = 0
-        latency_list = []
-        process_list = []
+        frame_counter = 0
+        total_inferencing_latency = 0
+        total_post_process_latency = 0
 
         while True:
 
@@ -97,51 +88,43 @@ class RKYoloV8:
                 self.shutdown()
 
             # instead of resizing the image, we letter box it so it
-            # "fits" the 640 x 640 shape the model requires 
+            # "fits" the 640 x 640 shape the model requires
             frame = self.letter_box(frame, new_shape=(IMG_SIZE[1],
-                                                      IMG_SIZE[0]), pad_color=(0, 0, 0))
+                                                      IMG_SIZE[0]),
+                                    pad_color=(0, 0, 0))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
-             # make a copy for display as we can't use the expanded version below
-             # for displaying via OpenCV
-             # also, draw the boxes on the SAME image used for inferencing, otherwise
-             # there is a good chance some of your boxes won't be on the objects in
-             # more densely packed videos.
-            image = frame.copy()
-            frame = np.expand_dims(frame, 0) # model expects (1, 3, 640, 640)
 
             # Inference
             start = time()
-            outputs = self.rknn.inference(inputs=[frame])  # noqa: F841
+            outputs = self.rknn.\
+                inference(inputs=[(np.expand_dims(frame, 0))])
             end = time()
             inferencing_latency = 1000 * round((end - start), 2)
-            counter += 1
+            total_inferencing_latency += inferencing_latency
 
-            latency_list.append(inferencing_latency)
-           
             start_process_time = time()
             boxes, classes, scores = self.post_process.post_process(outputs)
             end_process_time = time()
 
             post_process_latency = 1000 * round((end_process_time -
                                                  start_process_time), 2)
+            total_post_process_latency += post_process_latency
 
-            process_list.append(post_process_latency)
-        
-            if counter == 10:
-                counter = 0
-                avg_latency = round((mean(latency_list)), 2)
-                avg_post_process_latency = round((mean(process_list)), 2)
-                inferencing_fps = round((1000/avg_latency), 2)
-                self.logger.info(f'Average inferencing latency: {avg_latency}, Avg. FPS: {inferencing_fps}, avg post process latency: {avg_post_process_latency}')  # noqa: E501
+            frame_counter += 1
+
+            if frame_counter % 100 == 0:
+                avg_inferencing_latency = round((total_inferencing_latency /
+                                                 frame_counter), 2)
+                avg_post_latency = round((total_post_process_latency /
+                                          frame_counter), 2)
+                inference_fps = round((1000 / avg_inferencing_latency), 2)
+                overall_fps = round((1000 /
+                                     (avg_inferencing_latency +
+                                      avg_post_latency)), 2)
+                self.logger.info(f'Avg inferencing(ms): {avg_inferencing_latency}, inferencing FPS: {inference_fps}, avg post-process(ms): {avg_post_latency}, overall FPS: {overall_fps}')  # noqa: E501
 
             # draw boxes on image
-            # given this would be deployed at the edge, we only need to draw boxes on
-            # a screen for testing, edge deployment would be more about data collection
-            self.draw(image, boxes, classes, scores)
-
-            # can also add ability to save the frames here/create a video
-            # with the detections.
+            self.draw(frame, boxes, classes, scores)
 
             key = cv2.waitKey(1)
             if key == ord('q'):
@@ -157,9 +140,8 @@ class RKYoloV8:
         r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
 
         # Compute padding
-        ratio = r  # width, height ratios
         new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
-        dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
+        dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]
 
         dw /= 2  # divide padding into 2 sides
         dh /= 2
@@ -169,19 +151,19 @@ class RKYoloV8:
         top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
         im = cv2.copyMakeBorder(im, top, bottom, left, right,
-                                cv2.BORDER_CONSTANT, value=pad_color)  # add border
-
+                                cv2.BORDER_CONSTANT, value=pad_color)
         return im
 
     def draw(self, image, boxes, classes, scores):
         for box, score, cl in zip(boxes, scores, classes):
             top, left, right, bottom = [int(_b) for _b in box]
-            
+
             cv2.rectangle(image, (top, left), (right, bottom), (255, 0, 0), 2)
             cv2.putText(image, '{0} {1:.2f}'.format(CLASSES[cl], score),
                         (top, left - 6), cv2.FONT_HERSHEY_SIMPLEX,
                         0.6, (0, 0, 255), 2)
-            cv2.imshow("YOLOv8 Detections on Orange Pi 5+ w/ Rockchip 3588", image)
+            cv2.imshow("YOLOv8 Detections on Orange Pi 5+ w/ Rockchip 3588",
+                       image)
 
     def shutdown(self):
 
@@ -191,5 +173,5 @@ class RKYoloV8:
         sys.exit()
 
 
-a = RKYoloV8("../videos/cars.mp4",
+a = RKYoloV8("../videos/1171461-sd_640_360_30fps.mp4",
              "../rknn_models/yolov8n.rknn")
