@@ -136,6 +136,7 @@ class RKYoloV8:
         frame_counter = 0
         total_inferencing_latency = 0
         total_post_process_latency = 0
+        total_latency = 0
 
         while True:
 
@@ -158,8 +159,14 @@ class RKYoloV8:
             post_process_latency = 1000 * round((end_process_time -
                                                  start_process_time), 2)
             total_post_process_latency += post_process_latency
+            total_latency = total_post_process_latency +\
+                total_inferencing_latency
 
             frame_counter += 1
+
+            overall_fps = round((1000 / (total_latency / frame_counter)), 2)
+
+            # used for troubleshooting/testing
 
             if frame_counter % 100 == 0:
                 avg_inferencing_latency = round((total_inferencing_latency /
@@ -167,13 +174,11 @@ class RKYoloV8:
                 avg_post_latency = round((total_post_process_latency /
                                           frame_counter), 2)
                 inference_fps = round((1000 / avg_inferencing_latency), 2)
-                overall_fps = round((1000 /
-                                     (avg_inferencing_latency +
-                                      avg_post_latency)), 2)
                 self.logger.info(f'Avg inferencing(ms): {avg_inferencing_latency}, inferencing FPS: {inference_fps}, avg post-process(ms): {avg_post_latency}, overall FPS: {overall_fps}')  # noqa: E501
 
             # draw boxes on image
-            await self.draw(self.prepared_images.get(), boxes, classes, scores)
+            await self.draw(self.prepared_images.get(), boxes, classes,
+                            scores, overall_fps)
 
             key = cv2.waitKey(1)
             if key == ord('q'):
@@ -189,11 +194,17 @@ class RKYoloV8:
 
         return self.post_process.post_process(data)
 
-    async def draw(self, image, boxes, classes, scores):
+    async def draw(self, image, boxes, classes, scores, fps):
+
+        message = (f'Overall FPS: {fps}')
+
+        cv2.putText(image, message, (5, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                    (0, 255, 0), 1)
+
         for box, score, cl in zip(boxes, scores, classes):
             top, left, right, bottom = [int(_b) for _b in box]
 
-            cv2.rectangle(image, (top, left), (right, bottom), (255, 0, 0), 2)
+            cv2.rectangle(image, (top, left), (right, bottom), (255, 0, 0), 1)
             cv2.putText(image, '{0} {1:.2f}'.format(CLASSES[cl], score),
                         (top, left - 6), cv2.FONT_HERSHEY_SIMPLEX,
                         0.6, (0, 0, 255), 2)
