@@ -1,3 +1,5 @@
+# Duplicate of main.py, just to have a separate script to test running
+# two video feeds at once.
 # (C) Markham Lee 2024
 # https://github.com/MarkhamLee/computer-vision-demo-reel
 # Post processing loosely based/inspired by:
@@ -71,7 +73,7 @@ class RKYoloV8:
 
     def run_time_environment(self):
 
-        status = self.rknn.init_runtime(core_mask=RKNNLite.NPU_CORE_1)
+        status = self.rknn.init_runtime(core_mask=RKNNLite.NPU_CORE_0_1)
 
         if status != 0:
             self.logger.debug('Run time instantiation failed, exiting...')
@@ -208,5 +210,5 @@ class RKYoloV8:
         sys.exit()
 
 
-a = RKYoloV8("../videos/cars.mp4",
+a = RKYoloV8("../videos/1171461-sd_640_360_30fps.mp4",
              "../rknn_models/yolov8n.rknn")

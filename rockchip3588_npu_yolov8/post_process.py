@@ -1,5 +1,9 @@
-# refactored from: https://github.com/airockchip/rknn_model_zoo/blob/main/examples/yolov8/python/yolov8.py  # noqa: E501
-# TODO: re-write, optimize to reduce processing time, currently around 19-20ms.
+# (C) Markham Lee 20204
+# https://github.com/MarkhamLee/computer-vision-demo-reel
+# Refactored, optimized from:
+# https://github.com/airockchip/rknn_model_zoo/blob/main/examples/yolov8/python/yolov8.py  # noqa: E501
+# https://github.com/ultralytics/ultralytics # noqa: E501
+# Post processing for running YOLOv8 on Rockchip3588 NPU
 import os
 import sys
 import torch
@@ -73,6 +77,7 @@ class PostProcess:
             ovr = inter / (areas[i] + areas[order[1:]] - inter)
             inds = np.where(ovr <= NMS_THRESH)[0]
             order = order[inds + 1]
+
         keep = np.array(keep)
         return keep
 
@@ -106,6 +111,14 @@ class PostProcess:
 
         return xyxy
 
+    def np_concat(self, array1, array2, array3):
+
+        array1 = np.concatenate(array1)
+        array2 = np.concatenate(array2)
+        array3 = np.concatenate(array3)
+
+        return array1, array2, array3
+
     def post_process(self, input_data):
         boxes, scores, classes_conf = [], [], []
         default_branch = 3
@@ -131,9 +144,9 @@ class PostProcess:
         classes_conf = [sp_flatten(_v) for _v in classes_conf]
         scores = [sp_flatten(_v) for _v in scores]
 
-        boxes = np.concatenate(boxes)
-        classes_conf = np.concatenate(classes_conf)
-        scores = np.concatenate(scores)
+        boxes, classes_conf, scores = self.np_concat(boxes,
+                                                     classes_conf,
+                                                     scores)
 
         # filter according to threshold
         boxes, classes, scores = self.filter_boxes(boxes, scores, classes_conf)
@@ -155,8 +168,7 @@ class PostProcess:
         if not nclasses and not nscores:
             return None, None, None
 
-        boxes = np.concatenate(nboxes)
-        classes = np.concatenate(nclasses)
-        scores = np.concatenate(nscores)
+        boxes, classes, scores = self.np_concat(nboxes,
+                                                nclasses, nscores)
 
         return boxes, classes, scores
