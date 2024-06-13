@@ -3,7 +3,7 @@
 # https://github.com/MarkhamLee/computer-vision-demo-reel
 # Demos a full video analytics pipeline for the Multi-class object counter by
 # adding the ability to transmit the JSON payload via MQTT. Usage: the user
-# would provide the classes they want to track as a paramter, plus configure
+# would provide the classes they want to track as a paramwter, plus configure
 # environmental variables for connecting to a MQTT broker and provide a path
 # to a video file. From there the script will count ingress/egress for each
 # detected class vs a line drawn in the center of the frame, calculate FPS,
@@ -14,12 +14,12 @@
 # create variants for low powered edge devices, e.g., Orange Pi 5+/Rockchip
 # 3588 device, Raspberry Pi 4B or 5.
 import cv2
-import gc
 import json
 import os
 import sys
 import torch
 import pandas as pd
+from imutils.video import FPS
 from ultralytics import YOLO
 from ultralytics.solutions import object_counter
 
@@ -123,7 +123,7 @@ class PeopleCounter:
 
         counter = object_counter.ObjectCounter()
         # set "view_img" to false if you don't want to view the video
-        counter.set_args(view_img=True,
+        counter.set_args(view_img=False,
                          reg_pts=line_points,
                          classes_names=self.model.names,
                          draw_tracks=False,
@@ -133,14 +133,16 @@ class PeopleCounter:
 
         return counter
 
-    def analyze_video(self, stream_object: object, orig_fps: float,
-                      classes: list):
+    def analyze_video(self, stream_object: object,
+                      orig_fps: float, classes: list):
 
         frame_count = 0
         fps_sum = 0
         count = 0
         avg_fps = 0
         total_latency = 0
+
+        self.fps = FPS().start()
 
         while stream_object.isOpened():
             success, frame = stream_object.read()
@@ -174,6 +176,7 @@ class PeopleCounter:
             # increment the "counting fields" in and out
             # returned frame can be saved for later viewing
             frame = self.count_object.start_counting(frame, video_data)
+            self.fps.update()
 
             count += 1
 
@@ -200,16 +203,11 @@ class PeopleCounter:
                 self.logger.info(f'Video data: {payload}')
                 count = 0
 
-            # garbage collection
-            del frame, fps, payload, intermediate_df
-            gc.collect()
+            cv2.imshow("monitor detections", frame)
 
             key = cv2.waitKey(1)
             if key == ord('q'):
                 self.shutdown()
-
-        stream_object.release()
-        cv2.destroyAllWindows()
 
     def parse_video_data(self, data: object) -> dict:
 
@@ -224,11 +222,10 @@ class PeopleCounter:
         # send data
         self.mqtt_client.publish(self.TOPIC, payload)
 
-        del payload
-        gc.collect()
-
     def shutdown(self):
-
+        self.fps.stop()
+        print("[INFO] elasped time: {:.2f}".format(self.fps.elapsed()))
+        print("[INFO] approx. FPS: {:.2f}".format(self.fps.fps()))
         self.stream_object.release()
         cv2.destroyAllWindows()
         sys.exit()

@@ -12,11 +12,11 @@
 # Create variants for low powered edge devices, e.g., Orange Pi 5+/Rockchip
 # 3588 device, Raspberry Pi 4B or 5.
 import cv2
-import gc
 import os
 import sys
 import torch
 import pandas as pd
+from imutils.video import FPS
 from ultralytics import YOLO
 from ultralytics.solutions import object_counter
 
@@ -27,7 +27,7 @@ sys.path.append(parent_dir)
 from common_utils.logging_utils import LoggingUtilities  # noqa: E402
 
 
-class PeopleCounter:
+class PeopleCounter():
 
     def __init__(self, model_name: str, file_path: str, classes: list):
 
@@ -73,6 +73,7 @@ class PeopleCounter:
     def get_streaming_object(self, file_path: str):
 
         cap = cv2.VideoCapture(file_path)
+
         assert cap.isOpened(), "Error reading video file"
 
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH,
@@ -88,14 +89,23 @@ class PeopleCounter:
         line_points = [(width / 2, 0), (width / 2, height)]
 
         counter = object_counter.ObjectCounter()
-        # set "view_img" to false if you don't want to view the video
-        counter.set_args(view_img=True,
+        counter.set_args(view_img=False,
                          reg_pts=line_points,
                          classes_names=self.model.names,
                          draw_tracks=False,
                          line_thickness=2)
 
         return counter
+
+    def stream_video(self, stream_object):
+
+        success, frame = stream_object.read()
+
+        if not success:
+            self.logger.info('No file or processing complete')
+            self.shutdown()
+
+        return frame
 
     def analyze_video(self, stream_object: object, orig_fps: float,
                       classes: list):
@@ -105,12 +115,10 @@ class PeopleCounter:
         count = 0
         avg_fps = 0
 
-        while stream_object.isOpened():
-            success, frame = stream_object.read()
-            if not success:
-                self.logger.info('No file or processing complete')
-                self.logger.info(f'Video Complete, average FPS: {avg_fps}')
-                self.shutdown()
+        self.fps = FPS().start()
+
+        while True:
+            frame = self.stream_video(stream_object)
 
             # the video data object contains extensive data on each frame of
             # the video video shape, xy coordintes for each object, object
@@ -135,6 +143,8 @@ class PeopleCounter:
             # returned frame can be saved for later viewing
             frame = self.count_object.start_counting(frame, video_data)
 
+            self.fps.update()
+
             count += 1
 
             # pull dictionary with in/out counts for each class from the
@@ -157,11 +167,9 @@ class PeopleCounter:
                 self.logger.info(f'Current payload: {payload}')
                 count = 0
 
-            # garbage collection
-            del frame, fps, payload, intermediate_df
-            gc.collect()
+            cv2.imshow("monitor detections", frame)
 
-            key = cv2.waitKey(1)
+            key = cv2.waitKey(10)
             if key == ord('q'):
                 self.shutdown()
 
@@ -175,6 +183,8 @@ class PeopleCounter:
         self.stream_object.release()
         cv2.destroyAllWindows()
         self.logger.info("Stream object released, exiting...")
+        self.fps.stop()
+        self.logger.info(f'Final FPS: {round((self.fps.fps()), 2)}')
         sys.exit()
 
 
