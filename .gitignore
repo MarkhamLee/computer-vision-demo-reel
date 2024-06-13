@@ -153,6 +153,8 @@ cython_debug/
 
 # no need to store the models
 *.pt
+*.torchscript
+yolov8n_ncnn_model
 
 # The repo's to-do list 
 future_plans.md 
