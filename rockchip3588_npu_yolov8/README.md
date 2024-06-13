@@ -1,12 +1,22 @@
 ## YOLOv8 Object Detection on the NPU of a Rockchip 3588 System on Chip (SOC)
 
-Relatively simple starter implementation/example of using the NPU of a Rockchip 3588 to accelerate YOLOv8. Plan is to optimize the code a bit more for speed and then add some tracking and counting features. Implementing YOLOv8 via Rockchip's RKNN format removes the model's built in tracking and counting features,so I'll have to either *"build a bridge"* to said features, rebuild them myself or some combination of both. 
+An example of how to use asynchronous functions and smart threading management to not only run YOLOv8n on a Rockchip3588 NPU but run multiple streams simultaneously 
 
+* This device has four "big" cores and four "little ones", by limiting the number of threads we ensure that only the big cores are used for the bulk of the compute and avoid the performance hit that typically comes from using big and little cores together. Two threads seem to be the sweet spot, exceptional performance and you can now run multiple streams simultaneously. Four threads only gain 1-2 FPS and is not worth it considering the cost is the opportunity for the device to do more parallel work. 
+
+* Used async functions for reading video and pre-processing, inferencing, post processing and drawing the detection boxes on the frame, the performance uplift is small for one video stream, but at around 10+ FPS for running multiple streams at once. 
+
+Future plans include adding some sort of unique tracking, border crossing, etc., and generating JSON payloads for transmission by protocols like MQTT. I.e., add the features that would needed for an edge deployment. 
+
+![Rockchip RK3588 YOLOv8 NPU](../images/rk3588.gif)
+* Trying to do screen capture on top of the two streams grinds things to a halt, so recording with my phone was the best option at the moment. 
+* Adding the latency to draw boxes + render the frame costs about 2-3 FPS, so the real on screen FPS is closer to 27-28.
+* Both videos are 640 x 360
 
 ### Performance
-* If you just look at inferencing, it's about 35-40 FPS for a 640 x 360 image, however, to run YOLO models on this NPU requires you to remove some items from the original neural network (generating predictions, probabilities and the like) and move them to the CPU, which adds another 20ms of processing time, so the overall FPS is closer to 20.
+Aided by strict limits on threads to ensure we only use the Rockchip3588 big cores for the bulk of the compute, and asynchronous functions to avoid thread locks and bottlenecks, this implementation of YOLOv8 via the RK3588’s NPU reaches about 48-49 FPS just based on inferencing and ~33 FPS when post-processing is factored in. Another benefit is that since performance only requires one NPU core, and you’re limiting the CPU threads, you can run at 30+ FPS on two standard definition video streams at the same time.  
 
-* It's worth noting that if you skip the post processing steps the FPS jumps to close to 50, and overalL utilization rarely goes above 10%,  which means the post-processing on the CPU is a significant bottleneck. 
+In comparison, without the threading and asynchronous optimizations, this ran at barely 20 FPS and was using 95-100% of all eight cores. Also: post processing took 20-22ms and was a drag on inferencing, which was in the 37-40 FPS range with post processing and 48-49 FPS without it. Switching to async functions dropped post processing down to 10ms, inferencing FPS was around 48-4 FPS AKA as fast it was without post processing in the old implementation. Additionally, CPU utilization goes as high as 90-100% for 1-2 cores, with the rest typically under 30%. 
 
 ### Setup & Technical Details
 
