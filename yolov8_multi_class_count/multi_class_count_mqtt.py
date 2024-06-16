@@ -13,13 +13,13 @@
 # TODO:
 # create variants for low powered edge devices, e.g., Orange Pi 5+/Rockchip
 # 3588 device, Raspberry Pi 4B or 5.
+import asyncio
 import cv2
 import json
 import os
 import sys
 import torch
 import pandas as pd
-from imutils.video import FPS
 from ultralytics import YOLO
 from ultralytics.solutions import object_counter
 
@@ -53,8 +53,6 @@ class PeopleCounter:
         # get model
         self.model = self.get_model(model_name)
 
-        self.total_count = 10
-
         # Get streaming object; use width and height from stream object
         # to calculate the image's midpoint to place the line used to
         # count people moving in and out of the frame.
@@ -65,7 +63,7 @@ class PeopleCounter:
         self.count_object = self.get_counting_object(width, height)
 
         # analyze video
-        self.analyze_video(self.stream_object, orig_fps, classes)
+        asyncio.run(self.analyze_video(classes))
 
     def load_mqtt(self):
 
@@ -133,23 +131,26 @@ class PeopleCounter:
 
         return counter
 
-    def analyze_video(self, stream_object: object,
-                      orig_fps: float, classes: list):
+    def pre_process(self):
+
+        success, frame = self.stream_object.read()
+
+        if not success:
+            self.logger.info('No file or processing complete')
+            self.shutdown()
+
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    async def analyze_video(self, classes: list):
 
         frame_count = 0
         fps_sum = 0
-        count = 0
         avg_fps = 0
         total_latency = 0
 
-        self.fps = FPS().start()
+        while True:
 
-        while stream_object.isOpened():
-            success, frame = stream_object.read()
-            if not success:
-                self.logger.info('No file or processing complete')
-                self.logger.info(f'Video Complete, average FPS: {avg_fps}')
-                self.shutdown()
+            frame = self.pre_process()
 
             # the video data object contains extensive data on each frame of
             # the video video shape, xy coordintes for each object, object
@@ -176,45 +177,42 @@ class PeopleCounter:
             # increment the "counting fields" in and out
             # returned frame can be saved for later viewing
             frame = self.count_object.start_counting(frame, video_data)
-            self.fps.update()
-
-            count += 1
-
-            # pull dictionary with in/out counts for each class from the
-            # counting object
-            nested_payload = self.count_object.class_wise_count
-
-            # use pandas to flatten nested dictionary received from above
-            intermediate_df = pd.json_normalize(nested_payload, sep='_')
-            payload = intermediate_df.to_dict(orient='records')[0]
-
-            # add FPS & latency data to the base payload
-            payload.update({"FPS": fps,
-                            "Avg_FPS": avg_fps,
-                            "avg_latency": avg_latency})
 
             # send out MQTT message
-            self.send_payload(payload)
+            # use an async function so the MQTT latency doesn't slow
+            # things down.
+            payload = await self.send_payload(fps, avg_fps, avg_latency)
 
-            # Printing out the JSON payload, once per second
-            # Use the video's original FPS as a way to time
-            # a second based on having received x # of frames.
-            if count == orig_fps:
-                self.logger.info(f'Video data: {payload}')
-                count = 0
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             cv2.imshow("monitor detections", frame)
+            key = cv2.waitKey(15)  # add extra delay otherwise it runs too fast
 
-            key = cv2.waitKey(1)
             if key == ord('q'):
                 self.shutdown()
+
+            if frame_count % 100 == 0:
+                self.logger.info(f'Video data: {payload}')
 
     def parse_video_data(self, data: object) -> dict:
 
         inferencing_latency = round((sum(data[0].speed.values())), 2)
         return round((1000 / inferencing_latency), 2), inferencing_latency
 
-    def send_payload(self, payload: dict):
+    async def send_payload(self, fps, avg_fps, avg_latency):
+
+        # pull dictionary with in/out counts for each class from the
+        # counting object
+        nested_payload = self.count_object.class_wise_count
+
+        # use pandas to flatten nested dictionary received from above
+        intermediate_df = pd.json_normalize(nested_payload, sep='_')
+        payload = intermediate_df.to_dict(orient='records')[0]
+
+        # add FPS & latency data to the base payload
+        payload.update({"FPS": fps,
+                        "Avg_FPS": avg_fps,
+                        "avg_latency": avg_latency})
 
         # convert payload to json for sending out via MQTT
         payload = json.dumps(payload)
@@ -222,10 +220,9 @@ class PeopleCounter:
         # send data
         self.mqtt_client.publish(self.TOPIC, payload)
 
+        return payload
+
     def shutdown(self):
-        self.fps.stop()
-        print("[INFO] elasped time: {:.2f}".format(self.fps.elapsed()))
-        print("[INFO] approx. FPS: {:.2f}".format(self.fps.fps()))
         self.stream_object.release()
         cv2.destroyAllWindows()
         sys.exit()

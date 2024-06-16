@@ -10,7 +10,7 @@ Computer vision demos related to classification, object detection, and segmentat
 
 ### YOLOv8 on the Rockchip 3588 NPU 
 
-Using smart thread management and asynchronous functions, we're able to run two video streams simultaneously at about 30 FPS with post processing and ~48 FPS/throughput for inferencing. Not bad for a device that fits in the palm of your hand
+Using smart thread management and asynchronous functions, we're able to run two video streams simultaneously at about 30 FPS with post processing and ~48 FPS/throughput for inferencing. Not bad for a device that fits in the palm of your hand. **Note:** I've tried this with as many as six streams: three was at mid 20s FPS and 4-5 was around 18-19.
 
 ![Rockchip RK3588 YOLOv8 NPU](images/rk3588.gif)
 * Trying to do screen capture on top of the two streams grinds things to a halt, so recording with my phone was the best option at the moment. 
@@ -32,13 +32,12 @@ Counting people as they move past a certain point or "border line" in a video. E
 
 Counting entrances and exits for several different things or classes, think cars going by, people, people on bycycles, dogs, etc. Similar to the above, the demo generates a JSON payload with entry/exit data for each class, and there is an alternate version that transmits data via MQTT to be recorded in InfluxDB for display via Grafana. 
 
-![Multi Class Counting GIF](images/multi_count_dashboard_v2.gif)
+![Multi Class Counting GIF](images/multi_classv4.gif)
 
-**Note #1:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
+**Note #1:** FPS refers to processing speed, not the rendering speed which is ~24 FPS for the original video and around 20 FPS for the gif
 
-**Note #2:** the dashboard updates every 5 seconds vs the on screen data updating with every frame, so the dashboard lags the data on the gif/video.
+**Note #2:** the dashboard updates every 5 seconds vs the on screen data updating with every frame, so the dashboard lags the events in the gif/video.
 
-**Note #3:** similar to the above, there would probably not be a need to render the video in real time, we would likely just capture the data and transmit it to where it needs to go.
 
 
 

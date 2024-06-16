@@ -16,7 +16,6 @@ import os
 import sys
 import torch
 import pandas as pd
-from imutils.video import FPS
 from ultralytics import YOLO
 from ultralytics.solutions import object_counter
 
@@ -97,7 +96,7 @@ class PeopleCounter():
 
         return counter
 
-    def stream_video(self, stream_object):
+    def pre_process(self, stream_object):
 
         success, frame = stream_object.read()
 
@@ -105,20 +104,18 @@ class PeopleCounter():
             self.logger.info('No file or processing complete')
             self.shutdown()
 
-        return frame
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     def analyze_video(self, stream_object: object, orig_fps: float,
                       classes: list):
 
         frame_count = 0
         fps_sum = 0
-        count = 0
         avg_fps = 0
 
-        self.fps = FPS().start()
-
         while True:
-            frame = self.stream_video(stream_object)
+
+            frame = self.pre_process(stream_object)
 
             # the video data object contains extensive data on each frame of
             # the video video shape, xy coordintes for each object, object
@@ -143,35 +140,35 @@ class PeopleCounter():
             # returned frame can be saved for later viewing
             frame = self.count_object.start_counting(frame, video_data)
 
-            self.fps.update()
+            payload = self.build_payload(fps, avg_fps, inferencing_latency)
 
-            count += 1
-
-            # pull dictionary with in/out counts for each class from the
-            # counting object
-            nested_payload = self.count_object.class_wise_count
-
-            # use pandas to flatten nested dictionary
-            intermediate_df = pd.json_normalize(nested_payload, sep='_')
-            payload = intermediate_df.to_dict(orient='records')[0]
-
-            # add FPS and latency data to the base payload
-            payload.update({"FPS": fps,
-                            "Avg_FPS": avg_fps,
-                            "inferencing_latency": inferencing_latency})
-
-            # Printing out the JSON payload, once per second
-            # Use the video's original FPS as a way to time
-            # a second based on having received x # of frames.
-            if count == orig_fps:
+            if frame_count % 100 == 0:
                 self.logger.info(f'Current payload: {payload}')
-                count = 0
+
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             cv2.imshow("monitor detections", frame)
 
             key = cv2.waitKey(10)
             if key == ord('q'):
                 self.shutdown()
+
+    def build_payload(self, fps, avg_fps, inferencing_latency):
+
+        # pull dictionary with in/out counts for each class from the
+        # counting object
+        nested_payload = self.count_object.class_wise_count
+
+        # use pandas to flatten nested dictionary
+        intermediate_df = pd.json_normalize(nested_payload, sep='_')
+        payload = intermediate_df.to_dict(orient='records')[0]
+
+        # add FPS and latency data to the base payload
+        payload.update({"FPS": fps,
+                        "Avg_FPS": avg_fps,
+                        "inferencing_latency": inferencing_latency})
+
+        return payload
 
     def parse_video_data(self, data: object) -> dict:
 
@@ -183,8 +180,6 @@ class PeopleCounter():
         self.stream_object.release()
         cv2.destroyAllWindows()
         self.logger.info("Stream object released, exiting...")
-        self.fps.stop()
-        self.logger.info(f'Final FPS: {round((self.fps.fps()), 2)}')
         sys.exit()
 
 
