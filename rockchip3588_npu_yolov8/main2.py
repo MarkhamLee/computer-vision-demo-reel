@@ -73,7 +73,7 @@ class RKYoloV8:
 
     def run_time_environment(self):
 
-        status = self.rknn.init_runtime(core_mask=RKNNLite.NPU_CORE_0_1)
+        status = self.rknn.init_runtime(core_mask=RKNNLite.NPU_CORE_1)
 
         if status != 0:
             self.logger.debug('Run time instantiation failed, exiting...')
@@ -106,6 +106,7 @@ class RKYoloV8:
         self.pre_processed_images.put(frame)
 
         # put the same frame aside to draw the detection boxes on
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         self.prepared_images.put(frame)
 
     def letter_box(self, frame, shape, new_shape, pad_color):
@@ -221,5 +222,5 @@ class RKYoloV8:
         sys.exit()
 
 
-a = RKYoloV8("../videos/1171461-sd_640_360_30fps.mp4",
+a = RKYoloV8("../videos/4261446-sd_640_360_25fps.mp4",
              "../rknn_models/yolov8n.rknn")

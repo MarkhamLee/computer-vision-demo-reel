@@ -71,7 +71,7 @@ class RKYoloV8:
 
     def run_time_environment(self):
 
-        status = self.rknn.init_runtime(core_mask=RKNNLite.NPU_CORE_1)
+        status = self.rknn.init_runtime(core_mask=RKNNLite.NPU_CORE_0)
 
         if status != 0:
             self.logger.debug('Run time instantiation failed, exiting...')
@@ -103,7 +103,9 @@ class RKYoloV8:
 
         self.pre_processed_images.put(frame)
 
-        # put the same frame aside to draw the detection boxes on
+        # put the same frame aside to draw the detection boxes on, after
+        # changing the color scheme back to normal
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         self.prepared_images.put(frame)
 
     def letter_box(self, frame, shape, new_shape, pad_color):
@@ -167,7 +169,6 @@ class RKYoloV8:
             overall_fps = round((1000 / (total_latency / frame_counter)), 2)
 
             # used for troubleshooting/testing
-
             if frame_counter % 100 == 0:
                 avg_inferencing_latency = round((total_inferencing_latency /
                                                  frame_counter), 2)
