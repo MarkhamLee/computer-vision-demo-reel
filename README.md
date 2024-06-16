@@ -10,7 +10,7 @@ Computer vision demos related to classification, object detection, and segmentat
 
 ### YOLOv8 on the Rockchip 3588 NPU 
 
-Using smart thread management and asynchronous functions, we're able to run two video streams simultaneously at about 30 FPS with post processing and ~48 FPS/throughput just based on inferencing. Not bad for a device that fits in the palm of your hand
+Using smart thread management and asynchronous functions, we're able to run two video streams simultaneously at about 30 FPS with post processing and ~48 FPS/throughput for inferencing. Not bad for a device that fits in the palm of your hand
 
 ![Rockchip RK3588 YOLOv8 NPU](images/rk3588.gif)
 * Trying to do screen capture on top of the two streams grinds things to a halt, so recording with my phone was the best option at the moment. 
