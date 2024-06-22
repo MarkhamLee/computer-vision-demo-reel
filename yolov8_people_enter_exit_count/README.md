@@ -5,6 +5,6 @@ All of the data (ingress, egress, people present and fps) is aggregated into a J
 
 ![People Counting GIF](../images/escalator_count.gif)
 
-**Note 1:** FPS refers to processing speed, not the rendering speed which is ~30 FPS for the original video and around 10 FPS for the gif
+**Note 1:** FPS refers to processing speed not on screen rendering speed, which is about 20 FPS for the gif for an original video that was a) time lapse b) running at 30 FPS.
 
 **Note #2:** in a real life implementation the org would have systems/technology in place that display and store video, so we probably wouldn't render/show video with detections, we would instead just make the data available for later view/analysis whether that's storing the data + the video with detections or just storing the data.

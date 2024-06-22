@@ -101,30 +101,28 @@ class PeopleCounter:
 
         return counter
 
+    def pre_processing(self):
+
+        success, frame = self.stream_object.read()
+
+        if not success:
+            self.logger.info('No file or processing complete')
+            self.shutdown()
+
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
     def analyze_video(self, stream_object: object, orig_fps: float):
 
         frame_count = 0
         fps_sum = 0
-        count = 0
         avg_fps = 0
+        total_latency = 0
 
-        while stream_object.isOpened():
-            success, self.frame = stream_object.read()
-            if not success:
-                self.logger.info('No file or processing complete')
-                self.shutdown()
+        while True:
 
-            # set class index to zero as that's the index for people
-            # and we're only counting people.
-            # TODO: provide class as a parameter
-            classes = [0]
+            self.frame = self.pre_processing()
 
-            # the video data object contains extensive data on each frame of
-            # the video video shape, xy coordintes for each object, object
-            # classes and data on inferencing and processing speed.
-            video_data = self.model.track(self.frame, persist=True,
-                                          show=False, verbose=False,
-                                          classes=classes)
+            video_data = self.inferencing(self.frame)
 
             # parse out key data from the video data object
             fps, inferencing_latency = self.parse_video_data(video_data)
@@ -133,51 +131,69 @@ class PeopleCounter:
             frame_count += 1
             avg_fps = round((fps_sum / frame_count), 2)
 
-            # TODO: update so that it can be used to count
-            # instances of all classes, not just people
-            # i.e., make this generic
+            total_latency = total_latency + inferencing_latency
+            avg_latency = round((total_latency / frame_count), 2)
+
+            # count the number of people in the frame
             people_count = len((video_data[0]).boxes)
 
             # increment the "counting fields" in and out
             self.count_object.start_counting(self.frame, video_data)
 
-            # increment frame count used for writing data to console
-            # every second
-            count += 1
-
-            # put Black rectangle on frame to for showing text
-            self.text_rectangle(self.frame)
-
             # write data to the frame
-            fps_message = (f'Avg. FPS: {avg_fps}')
-            self.write_text(self.frame, fps_message, (5, 30))
+            self.update_frame(avg_fps, people_count)
 
-            present_message = (f'Total People Present: {people_count}')
-            self.write_text(self.frame, present_message, (5, 60))
-
-            incoming_message = (f'Going up: {int(self.count_object.in_counts)}')  # noqa: E501
-            self.write_text(self.frame, incoming_message, (5, 90))
-
-            # note: "in" = approaching from top of the line, so if top
-            # of line = entering, you need to adjust the labels accordingly
-            outgoing_message = (f'Going down: {int(self.count_object.out_counts)}')  # noqa: E501
-            self.write_text(self.frame, outgoing_message, (5, 120))
+            self.frame = cv2.cvtColor(self.frame, cv2.COLOR_RGB2BGR)
 
             # display frame
             cv2.imshow("YOLOv8 Tracking", self.frame)
 
+            key = cv2.waitKey(15)
+            if key == ord('q'):
+                self.shutdown()
+
             # create a JSON payload for consumption by other
             # systems.
             payload = self.build_payload(fps, people_count,
-                                         avg_fps, inferencing_latency)
+                                         avg_fps, avg_latency)
 
-            if count == orig_fps:
+            if frame_count % 100 == 0:
                 self.logger.info(f'Current payload: {payload}')
-                count = 0
 
-            key = cv2.waitKey(1)
-            if key == ord('q'):
-                self.shutdown()
+    def inferencing(self, frame):
+
+        # set class index to zero as that's the index for people
+        # and we're only counting people.
+        # TODO: provide class as a parameter
+        classes = [0]
+
+        # the video data object contains extensive data on each frame of
+        # the video video shape, xy coordintes for each object, object
+        # classes and data on inferencing and processing speed.
+        return self.model.track(frame, persist=True,
+                                show=False,
+                                verbose=False,
+                                classes=classes)
+
+    def update_frame(self, avg_fps, people_count):
+
+        # put Black rectangle on frame to for showing text
+        self.text_rectangle(self.frame)
+
+        # write data to the frame
+        fps_message = (f'Avg. FPS: {avg_fps}')
+        self.write_text(self.frame, fps_message, (5, 30))
+
+        present_message = (f'Total People Present: {people_count}')
+        self.write_text(self.frame, present_message, (5, 60))
+
+        incoming_message = (f'Going up: {int(self.count_object.in_counts)}')  # noqa: E501
+        self.write_text(self.frame, incoming_message, (5, 90))
+
+        # note: "in" = approaching from top of the line, so if top
+        # of line = entering, you need to adjust the labels accordingly
+        outgoing_message = (f'Going down: {int(self.count_object.out_counts)}')  # noqa: E501
+        self.write_text(self.frame, outgoing_message, (5, 120))
 
     def text_rectangle(self, frame: object):
 
@@ -197,7 +213,7 @@ class PeopleCounter:
         return round((1000 / inferencing_latency), 2), inferencing_latency
 
     def build_payload(self, fps: float, count: int,
-                      avg_fps: float, inferencing_latency) -> dict:
+                      avg_fps: float, avg_latency: float) -> dict:
 
         # note: we force int as the system will sometimes count a partial cross
         # as a fraction of a count until they've completely crossed the line.
@@ -206,7 +222,7 @@ class PeopleCounter:
                    "total_persons_in_view": count,
                    "current_fps": float(fps),
                    "avg_fps": avg_fps,
-                   "inferencing_latency(ms)": inferencing_latency}
+                   "inferencing_latency(ms)": avg_latency}
 
         # convert to json
         return json.dumps(payload)

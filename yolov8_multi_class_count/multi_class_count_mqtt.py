@@ -183,6 +183,7 @@ class PeopleCounter:
             # things down.
             payload = await self.send_payload(fps, avg_fps, avg_latency)
 
+            # convert the frame back to its original color scheme
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             cv2.imshow("monitor detections", frame)
