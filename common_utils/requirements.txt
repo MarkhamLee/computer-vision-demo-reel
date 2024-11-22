@@ -5,7 +5,7 @@ astunparse==1.6.3
 attrs==23.2.0
 cachetools==5.3.3
 cattrs==23.2.3
-certifi==2024.2.2
+certifi==2024.07.04
 cffi==1.16.0
 charset-normalizer==3.3.2
 chex==0.1.86
@@ -75,7 +75,7 @@ nvidia-nvjitlink-cu12==12.4.127
 nvidia-nvtx-cu12==12.1.105
 nvidia-tensorrt==8.4.3.1
 oauthlib==3.2.2
-onnx==1.16.0
+onnx==1.17.0
 onnx-graphsurgeon==0.5.2
 onnx2tf==1.17.5
 onnxruntime==1.17.3
@@ -107,7 +107,7 @@ pyparsing==3.1.2
 python-dateutil==2.9.0.post0
 pytz==2024.1
 PyYAML==6.0.1
-requests==2.31.0
+requests==2.32.0
 requests-oauthlib==2.0.0
 rich==13.7.1
 rsa==4.9
@@ -142,8 +142,8 @@ typing_extensions==4.11.0
 tzdata==2024.1
 ultralytics==8.2.11
 urllib3==2.2.1
-Werkzeug==3.0.3
+Werkzeug==3.0.6
 wrapt==1.16.0
 wurlitzer==3.1.0
 x2paddle==1.4.1
-zipp==3.18.1
+zipp==3.19.1
