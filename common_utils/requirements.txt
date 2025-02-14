@@ -37,8 +37,8 @@ importlib_resources==6.4.0
 imutils==0.5.4
 jax==0.4.27
 jaxlib==0.4.27
-Jinja2==3.1.4
-keras==3.3.3
+Jinja2==3.1.5
+keras==3.8.0
 kiwisolver==1.4.5
 lapx==0.5.8
 libclang==18.1.1
@@ -141,7 +141,7 @@ triton==2.3.0
 typing_extensions==4.11.0
 tzdata==2024.1
 ultralytics==8.2.11
-urllib3==2.2.1
+urllib3==2.2.2
 Werkzeug==3.0.6
 wrapt==1.16.0
 wurlitzer==3.1.0
