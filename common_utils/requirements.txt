@@ -27,7 +27,7 @@ google-auth==2.29.0
 google-auth-oauthlib==1.0.0
 google-pasta==0.2.0
 grpcio==1.63.0
-h11==0.14.0
+h11==0.16.0
 h5py==3.11.0
 httpcore==1.0.5
 httpx==0.27.0
@@ -37,8 +37,8 @@ importlib_resources==6.4.0
 imutils==0.5.4
 jax==0.4.27
 jaxlib==0.4.27
-Jinja2==3.1.5
-keras==3.8.0
+Jinja2==3.1.6
+keras==3.9.0
 kiwisolver==1.4.5
 lapx==0.5.8
 libclang==18.1.1
@@ -133,7 +133,7 @@ tf_keras==2.16.0
 tflite-support==0.4.4
 thop==0.1.1.post2209072238
 toolz==0.12.1
-torch==2.3.0
+torch==2.6.0
 torchaudio==2.3.0+cu118
 torchvision==0.18.0
 tqdm==4.66.4
