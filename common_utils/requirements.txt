@@ -38,7 +38,7 @@ imutils==0.5.4
 jax==0.4.27
 jaxlib==0.4.27
 Jinja2==3.1.6
-keras==3.9.0
+keras==3.11.0
 kiwisolver==1.4.5
 lapx==0.5.8
 libclang==18.1.1
@@ -94,7 +94,7 @@ paho-mqtt==1.6.1
 pandas==2.2.2
 pillow==10.3.0
 portalocker==2.8.2
-protobuf==3.20.3
+protobuf==4.25.8
 psutil==5.9.8
 py-cpuinfo==9.0.0
 pyaml==24.4.0
@@ -107,7 +107,7 @@ pyparsing==3.1.2
 python-dateutil==2.9.0.post0
 pytz==2024.1
 PyYAML==6.0.1
-requests==2.32.0
+requests==2.32.4
 requests-oauthlib==2.0.0
 rich==13.7.1
 rsa==4.9
@@ -133,7 +133,7 @@ tf_keras==2.16.0
 tflite-support==0.4.4
 thop==0.1.1.post2209072238
 toolz==0.12.1
-torch=2.7.1
+torch=2.8.0
 torchaudio==2.3.0+cu118
 torchvision==0.18.0
 tqdm==4.66.4
@@ -141,7 +141,7 @@ triton==2.3.0
 typing_extensions==4.11.0
 tzdata==2024.1
 ultralytics==8.2.11
-urllib3==2.2.2
+urllib3==2.5.0
 Werkzeug==3.0.6
 wrapt==1.16.0
 wurlitzer==3.1.0
