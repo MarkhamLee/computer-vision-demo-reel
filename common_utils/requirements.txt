@@ -75,7 +75,7 @@ nvidia-nvjitlink-cu12==12.4.127
 nvidia-nvtx-cu12==12.1.105
 nvidia-tensorrt==8.4.3.1
 oauthlib==3.2.2
-onnx==1.21.0
+onnx==1.22.0
 onnx-graphsurgeon==0.5.2
 onnx2tf==1.17.5
 onnxruntime==1.17.3
