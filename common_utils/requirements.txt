@@ -1,5 +1,5 @@
 absl-py==2.1.0
-anyio==4.3.0
+anyio==4.15.1
 astor==0.8.1
 astunparse==1.6.3
 attrs==23.2.0
@@ -74,7 +74,7 @@ nvidia-nccl-cu12==2.20.5
 nvidia-nvjitlink-cu12==12.4.127
 nvidia-nvtx-cu12==12.1.105
 nvidia-tensorrt==8.4.3.1
-oauthlib==3.2.2
+oauthlib==4.0.0
 onnx==1.22.0
 onnx-graphsurgeon==0.5.2
 onnx2tf==1.17.5
